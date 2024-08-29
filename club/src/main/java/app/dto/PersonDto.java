@@ -3,9 +3,9 @@ package app.dto;
 
 public class PersonDto {
     private long id;
-    private long cedula;
+    private long document;
     private String name;
-    private long celphone;
+    private long cellPhone;
     
     public PersonDto(){}
 
@@ -17,12 +17,12 @@ public class PersonDto {
         this.id = id;
     }
 
-    public long getCedula() {
-        return cedula;
+    public long getDocument() {
+        return document;
     }
 
-    public void setCedula(long cedula) {
-        this.cedula = cedula;
+    public void setDocument(long document) {
+        this.document = document;
     }
 
     public String getName() {
@@ -33,12 +33,12 @@ public class PersonDto {
         this.name = name;
     }
 
-    public long getCelphone() {
-        return celphone;
+    public long getCellPhone() {
+        return cellPhone;
     }
 
-    public void setCelphone(long celphone) {
-        this.celphone = celphone;
+    public void setCellPhone(long cellPhone) {
+        this.cellPhone = cellPhone;
     }
     
     

@@ -13,7 +13,7 @@ public abstract class Helper {
         personDto.setId(person.getId());
         personDto.setDocument(person.getDocument());
         personDto.setName(person.getName());
-        personDto.setCelphone(person.getCelphone());
+        personDto.setCellPhone(person.getCellPhone());
         return personDto;
     }
     
@@ -22,7 +22,7 @@ public abstract class Helper {
         person.setId(personDto.getId());
         person.setDocument(personDto.getDocument());
         person.setName(personDto.getName());
-        person.setCelphone(personDto.getCelphone());
+        person.setCellPhone(personDto.getCellPhone());
         return person;
     }
     

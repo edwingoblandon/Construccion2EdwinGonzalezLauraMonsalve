@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 public class Partner {
     private long id;
     private User userId;
-    private double amaunt;
+    private double amount;
     private boolean type;
     private LocalDateTime dateOfCreation;
     
@@ -26,12 +26,12 @@ public class Partner {
         this.userId = userId;
     }
 
-    public double getAmaunt() {
-        return amaunt;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setAmaunt(double amaunt) {
-        this.amaunt = amaunt;
+    public void setAmaunt(double amount) {
+        this.amount = amount;
     }
 
     public boolean isType() {
