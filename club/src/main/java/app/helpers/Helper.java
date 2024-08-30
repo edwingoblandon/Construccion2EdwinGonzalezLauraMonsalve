@@ -3,9 +3,11 @@ package app.helpers;
 
 import app.dto.PersonDto;
 import app.dto.UserDto;
+import app.dto.PartnerDto;
 import app.model.Person;
 import app.model.User;
-
+import app.model.Partner;
+       
 public abstract class Helper {
     
     public static PersonDto parse(Person person){
@@ -45,6 +47,26 @@ public abstract class Helper {
         user.setRole(userDto.getRole());
         user.setUserName(userDto.getUserName());
         return user;
+    }
+    
+    public static PartnerDto parse(Partner partner){
+        PartnerDto partnerDto = new PartnerDto();
+        partnerDto.setId(partner.getId());
+        partnerDto.setUserId(parse(partner.getUserId()));
+        partnerDto.setType(partner.getType());
+        partnerDto.setCreationDate(partner.getCreationDate());
+        partnerDto.setAmount(partner.getAmount());
+        return partnerDto;
+    }
+
+    public static Partner parse(PartnerDto partnerDto){
+        Partner partner = new Partner();
+        partner.setId(partnerDto.getId());
+        partner.setUserId(parse(partnerDto.getUserId()));
+        partner.setType(partnerDto.getType());
+        partner.setCreationDate(partnerDto.getCreationDate());
+        partner.setAmount(partnerDto.getAmount());
+        return partner;
     }
     
 }

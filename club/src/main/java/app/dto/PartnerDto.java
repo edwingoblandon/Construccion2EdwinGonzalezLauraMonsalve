@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 public class PartnerDto {
     private long id;
     private UserDto userId;
-    private double amaunt;
-    private boolean type;
-    private LocalDateTime dateOfCreation;
+    private double amount;
+    private String type;
+    private LocalDateTime creationDate;
     
     public PartnerDto(){}
 
@@ -28,28 +28,28 @@ public class PartnerDto {
         this.userId = userId;
     }
 
-    public double getAmaunt() {
-        return amaunt;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setAmaunt(double amaunt) {
-        this.amaunt = amaunt;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
-    public boolean isType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(boolean type) {
+    public void setType(String type) {
         this.type = type;
     }
 
-    public LocalDateTime getDateOfCreation() {
-        return dateOfCreation;
+    public LocalDateTime getCreationDate() {
+        return creationDate;
     }
 
-    public void setDateOfCreation(LocalDateTime dateOfCreation) {
-        this.dateOfCreation = dateOfCreation;
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
     }
     
     

@@ -4,7 +4,7 @@ public class Guest {
     private long id;
     private User userId;
     private Partner partnerId;
-    private boolean status;
+    private String status;
     
     public Guest(){}
 
@@ -32,11 +32,11 @@ public class Guest {
         this.partnerId = partnerId;
     }
 
-    public boolean isStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(String status) {
         this.status = status;
     }
     

@@ -5,8 +5,8 @@ public class Partner {
     private long id;
     private User userId;
     private double amount;
-    private boolean type;
-    private LocalDateTime dateOfCreation;
+    private String type;
+    private LocalDateTime creationDate;
     
     public Partner(){}
 
@@ -30,24 +30,24 @@ public class Partner {
         return amount;
     }
 
-    public void setAmaunt(double amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
-    public boolean isType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(boolean type) {
+    public void setType(String type) {
         this.type = type;
     }
 
-    public LocalDateTime getDateOfCreation() {
-        return dateOfCreation;
+    public LocalDateTime getCreationDate() {
+        return creationDate;
     }
 
-    public void setDateOfCreation(LocalDateTime dateOfCreation) {
-        this.dateOfCreation = dateOfCreation;
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
     }
     
     

@@ -11,11 +11,12 @@ public class PartnerController implements ControllerInterface {
     private PersonValidator personValidator;
     private UserValidator userValidator;
     private PartnerService service;
-    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Incrementar fondos\n 5. Hacer consumos\n6. Solicitar Baja\n7. Cerrar sesion\n";
+    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Solicitar Baja\n5. Cerrar sesion\n";
     
     public PartnerController() {
         this.personValidator = new PersonValidator();
         this.userValidator = new UserValidator();
+        this.service = new Service();
     }
     
     @Override
@@ -46,14 +47,12 @@ public class PartnerController implements ControllerInterface {
                 return true;
             case "2": //activate guest 
             case "3": //inactivate guest
-            case "4"://pass
-            case "5"://pass
+            case "4"://request to unsubscribe
                 return true;
-            case "6": //request to unsubscribe
-                return true;
-            case "7":
+            case "5":{
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
+            } 
             default: {
                 System.out.println("Opcion incorrecta, intentelo de nuevo");
                 return true;
@@ -67,7 +66,7 @@ public class PartnerController implements ControllerInterface {
         personValidator.validName(name); //Void method
         System.out.println("Ingrese el numero de documento del invitado");
         long document = personValidator.validDocument(Utils.getReader().nextLine()); //Long method
-        System.out.println("Ingrese la el numero de celular del socio");
+        System.out.println("Ingrese el numero de celular del invitado");
         long celphone = personValidator.validCellPhone(Utils.getReader().nextLine());
         System.out.println("Ingrese el nombre de usuario del invitado");
         String userName = Utils.getReader().nextLine();

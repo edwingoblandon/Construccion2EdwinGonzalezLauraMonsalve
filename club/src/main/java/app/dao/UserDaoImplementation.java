@@ -17,21 +17,21 @@ public class UserDaoImplementation implements UserDao {
         String query = "SELECT ID,USERNAME,PASSWORD,ROLE,PERSONID FROM USER WHERE USERNAME = ?";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
         preparedStatement.setString(1, userDto.getUserName());
-        ResultSet resulSet = preparedStatement.executeQuery();
-        if (resulSet.next()) {
+        ResultSet resultSet = preparedStatement.executeQuery();
+        if (resultSet.next()) {
             User user = new User();
-            user.setId(resulSet.getLong("ID"));
-            user.setUserName(resulSet.getString("USERNAME"));
-            user.setPassword(resulSet.getString("PASSWORD"));
-            user.setRole(resulSet.getString("ROLE"));
+            user.setId(resultSet.getLong("ID"));
+            user.setUserName(resultSet.getString("USERNAME"));
+            user.setPassword(resultSet.getString("PASSWORD"));
+            user.setRole(resultSet.getString("ROLE"));
             Person person = new Person();
-            person.setDocument(resulSet.getLong("PERSONID"));
+            person.setDocument(resultSet.getLong("PERSONID"));
             user.setPersonId(person);
-            resulSet.close();
+            resultSet.close();
             preparedStatement.close();
             return Helper.parse(user);
         }
-        resulSet.close();
+        resultSet.close();
         preparedStatement.close();
         return null;
 
@@ -60,6 +60,6 @@ public class UserDaoImplementation implements UserDao {
         preparedStatement.setString(4, user.getRole());
         preparedStatement.execute();
         preparedStatement.close();
-        }
+    }
 
 }
