@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import app.dao.*;
 import app.dao.interfaces.*;
+import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.service.interfaces.AdminService;
 import app.service.interfaces.LoginService;
@@ -26,11 +27,12 @@ public class Service implements AdminService, LoginService , PartnerService{
     public Service(){
         this.personDao = new PersonDaoImplementation();
         this.userDao = new UserDaoImplementation();
+        this.partnerDao = new PartnerDaoImplementation();
     }
     
     @Override
-    public void createPartner(UserDto userDto) throws Exception{
-        this.createUser(userDto);
+    public void createPartner(PartnerDto partnerDto) throws Exception{
+        this.createPartnerInDb(partnerDto);
     }
     
     @Override
@@ -76,6 +78,17 @@ public class Service implements AdminService, LoginService , PartnerService{
             this.userDao.createUser(userDto);
         } catch (SQLException e) {
             this.personDao.deletePerson(userDto.getPersonId());
+        }
+    }
+    
+    private void createPartnerInDb(PartnerDto partnerDto) throws Exception{
+        this.createUser(partnerDto.getUserId());
+        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());
+        partnerDto.setUserId(userDto);
+        try {
+            this.partnerDao.createPartner(partnerDto);
+        } catch(Exception e){
+            this.userDao.deleteUser(userDto);
         }
     }
 }

@@ -9,4 +9,6 @@ public interface UserDao {
     public boolean existsByUserName(UserDto userDto) throws Exception;
     
     public UserDto findByUserName(UserDto userDto) throws Exception;
+    
+    public void deleteUser(UserDto userDto) throws Exception;
 }

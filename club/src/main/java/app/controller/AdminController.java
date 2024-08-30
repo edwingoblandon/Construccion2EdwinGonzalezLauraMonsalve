@@ -1,22 +1,27 @@
 
 package app.controller;
 
+import app.controller.validator.PartnerValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
+import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
 import app.service.Service;
 import app.service.interfaces.AdminService;
+import java.time.LocalDateTime;
 
 public class AdminController implements ControllerInterface {
     private PersonValidator personValidator;
     private UserValidator userValidator;
+    private PartnerValidator partnerValidator;
     private AdminService service;
     private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio \n2. Cerrar sesion \n";
 
     public AdminController() {
         this.personValidator = new PersonValidator();
         this.userValidator = new UserValidator();
+        this.partnerValidator = new PartnerValidator();
         this.service = new Service();
     }
     
@@ -71,22 +76,38 @@ public class AdminController implements ControllerInterface {
         long document = personValidator.validDocument(Utils.getReader().nextLine()); //Long method
         System.out.println("Ingrese la el numero de celular del socio");
         long celphone = personValidator.validCellPhone(Utils.getReader().nextLine());
+        
         System.out.println("Ingrese el nombre de usuario del socio");
         String userName = Utils.getReader().nextLine();
         userValidator.validUserName(userName);
         System.out.println("Ingrese una contraseña para el socio");
         String password = Utils.getReader().nextLine();
         userValidator.validPassword(password);
+        
+        System.out.println("Ingrese el monto del socio");
+        double amount = partnerValidator.validAmount(Utils.getReader().nextLine());
+        System.out.println("Ingrese el tipo de socio");
+        String type = Utils.getReader().nextLine();
+        partnerValidator.validType(type);
+        
         PersonDto personDto = new PersonDto();
         personDto.setName(name);
         personDto.setDocument(document);
         personDto.setCellPhone(celphone);
+        
         UserDto userDto = new UserDto();
         userDto.setPersonId(personDto);
         userDto.setUserName(userName);
         userDto.setPassword(password);
         userDto.setRole("partner");
-        this.service.createPartner(userDto);
+        
+        PartnerDto partnerDto = new PartnerDto();
+        partnerDto.setUserId(userDto);
+        partnerDto.setAmount(amount);
+        partnerDto.setType(type);
+        partnerDto.setCreationDate(LocalDateTime.now());
+
+        this.service.createPartner(partnerDto);
         System.out.println("Se ha creado el usuario exitosamente");
     }
  

@@ -1,7 +1,7 @@
 package app.service.interfaces;
 
-import app.dto.UserDto;
+import app.dto.PartnerDto;
 
 public interface AdminService {
-    public void createPartner(UserDto userDto) throws Exception;
+    public void createPartner(PartnerDto partnerDto) throws Exception;
 }
