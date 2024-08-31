@@ -1,23 +1,25 @@
 package app.service;
 
-import java.sql.Date;
 import java.sql.SQLException;
 
 import app.dao.*;
 import app.dao.interfaces.*;
+import app.dto.GuestDto;
+import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.service.interfaces.AdminService;
 import app.service.interfaces.LoginService;
 import app.service.interfaces.PartnerService;
-import app.service.interfaces.GuestService;
 import app.dto.UserDto;
+import app.helpers.Helper;
+import app.model.Partner;
 
 
 public class Service implements AdminService, LoginService , PartnerService{
-    private PersonDao personDao;
-    private UserDao userDao;
-    private PartnerDao partnerDao;
-    private GuestDao guestDao;
+    private final PersonDao personDao;
+    private final UserDao userDao;
+    private final PartnerDao partnerDao;
+    private final  GuestDao guestDao;
     private DetailInvoiceDao detailInvoiceDao;
     private InvoiceDao invoiceDao;
     
@@ -26,16 +28,18 @@ public class Service implements AdminService, LoginService , PartnerService{
     public Service(){
         this.personDao = new PersonDaoImplementation();
         this.userDao = new UserDaoImplementation();
+        this.partnerDao = new PartnerDaoImplementation();
+        this.guestDao = new GuestDaoImplementation();
     }
     
     @Override
-    public void createPartner(UserDto userDto) throws Exception{
-        this.createUser(userDto);
+    public void createPartner(PartnerDto partnerDto) throws Exception{
+        this.createPartnerInDb(partnerDto);
     }
     
     @Override
-    public void createGuest(UserDto userDto) throws Exception{
-        this.createUser(userDto);
+    public void createGuest(GuestDto guestDto) throws Exception{
+        this.createGuestInDb(guestDto);
     }
     
     @Override
@@ -48,7 +52,9 @@ public class Service implements AdminService, LoginService , PartnerService{
             throw new Exception("usuario o contraseña incorrecto");
         }
         userDto.setRole(validateDto.getRole());
-        user = validateDto;
+        userDto.setPersonId(validateDto.getPersonId());
+        userDto.setId(validateDto.getId());
+        user = userDto;
     }
         
     @Override
@@ -77,5 +83,41 @@ public class Service implements AdminService, LoginService , PartnerService{
         } catch (SQLException e) {
             this.personDao.deletePerson(userDto.getPersonId());
         }
+    }
+    
+    
+    private void createPartnerInDb(PartnerDto partnerDto) throws Exception {
+        this.createUser(partnerDto.getUserId());
+        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());
+        PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
+        partnerDto.setUserId(userDto);
+        
+        if (partnerDto.getType().equalsIgnoreCase("VIP") && this.partnerDao.countPartnersVip() >= 5 ) {
+            this.userDao.deleteUser(userDto);
+            this.personDao.deletePerson(personDto);
+            throw new Exception("Ya existen 5 socios VIP");
+        }
+
+        try {
+            this.partnerDao.createPartner(partnerDto);
+        } catch (SQLException e) {
+            System.out.println("Ocurrio un error: " + e.getMessage());
+        }
+    }
+
+    
+    private void createGuestInDb(GuestDto guestDto) throws Exception{
+        this.createUser(guestDto.getUserId());
+        UserDto userDto = userDao.findByUserName(guestDto.getUserId());
+        PersonDto personDto = personDao.findByDocument(guestDto.getUserId().getPersonId());
+        guestDto.setUserId(userDto);
+        try {
+            this.guestDao.createGuest(guestDto);
+        } catch(SQLException e){
+            System.out.println("Ocurrio un error: " + e.getMessage());
+            this.userDao.deleteUser(guestDto.getUserId());
+            this.personDao.deletePerson(personDto);
+        }
+        
     }
 }

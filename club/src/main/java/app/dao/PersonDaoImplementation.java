@@ -34,7 +34,7 @@ public class PersonDaoImplementation implements PersonDao {
         preparedStatement.execute();
         preparedStatement.close();
     }
-
+    
     @Override
     public void deletePerson(PersonDto personDto) throws Exception {
         Person person = Helper.parse(personDto);

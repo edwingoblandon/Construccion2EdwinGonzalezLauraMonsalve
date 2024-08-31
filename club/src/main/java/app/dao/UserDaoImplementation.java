@@ -33,6 +33,7 @@ public class UserDaoImplementation implements UserDao {
         }
         resultSet.close();
         preparedStatement.close();
+        System.out.println("No se encontro el usuario con el user name");
         return null;
 
     }
@@ -61,5 +62,14 @@ public class UserDaoImplementation implements UserDao {
         preparedStatement.execute();
         preparedStatement.close();
     }
+    
+    @Override
+    public void deleteUser(UserDto userDto) throws Exception {
+        User user = Helper.parse(userDto);
+        String query = "DELETE FROM USER WHERE USERNAME = ?";
+        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
+        preparedStatement.setString(1, user.getUserName());
+        preparedStatement.execute();
+        preparedStatement.close();	}
 
 }
