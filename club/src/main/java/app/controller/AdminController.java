@@ -74,7 +74,7 @@ public class AdminController implements ControllerInterface {
         personValidator.validName(name); //Void method
         System.out.println("Ingrese el numero de documento del socio");
         long document = personValidator.validDocument(Utils.getReader().nextLine()); //Long method
-        System.out.println("Ingrese la el numero de celular del socio");
+        System.out.println("Ingrese el numero de celular del socio");
         long celphone = personValidator.validCellPhone(Utils.getReader().nextLine());
         
         System.out.println("Ingrese el nombre de usuario del socio");
@@ -84,11 +84,18 @@ public class AdminController implements ControllerInterface {
         String password = Utils.getReader().nextLine();
         userValidator.validPassword(password);
         
-        System.out.println("Ingrese el monto del socio");
-        double amount = partnerValidator.validAmount(Utils.getReader().nextLine());
+
         System.out.println("Ingrese el tipo de socio");
         String type = Utils.getReader().nextLine();
         partnerValidator.validType(type);
+        double amount;
+        if(type.equalsIgnoreCase("REGULAR")) {
+            amount = partnerValidator.validAmount(type,"50000");}
+        else{
+            System.out.println("Ingrese el monto inicial del socio VIP");
+            amount = partnerValidator.validAmount(type,Utils.getReader().nextLine());
+        }
+        
         
         PersonDto personDto = new PersonDto();
         personDto.setName(name);

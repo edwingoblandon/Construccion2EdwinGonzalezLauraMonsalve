@@ -33,6 +33,7 @@ public class UserDaoImplementation implements UserDao {
         }
         resultSet.close();
         preparedStatement.close();
+        System.out.println("No se encontro el usuario con el user name");
         return null;
 
     }

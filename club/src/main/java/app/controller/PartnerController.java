@@ -1,21 +1,27 @@
 package app.controller;
 
+import app.controller.validator.GuestValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
+import app.dto.GuestDto;
+import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
 import app.service.Service;
 import app.service.interfaces.PartnerService;
+import java.time.LocalDateTime;
 
 public class PartnerController implements ControllerInterface {
     private PersonValidator personValidator;
     private UserValidator userValidator;
+    private GuestValidator guestValidator;
     private PartnerService service;
-    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Solicitar Baja\n5. Cerrar sesion\n";
+    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Solicitar Baja\n5. Cerrar sesion";
     
     public PartnerController() {
         this.personValidator = new PersonValidator();
         this.userValidator = new UserValidator();
+        this.guestValidator = new GuestValidator();
         this.service = new Service();
     }
     
@@ -36,7 +42,7 @@ public class PartnerController implements ControllerInterface {
         } catch(
                 Exception e){
             System.out.println(e.getMessage());
-            return false;
+            return true;
         }
     }
     
@@ -46,7 +52,9 @@ public class PartnerController implements ControllerInterface {
                 this.createGuest();
                 return true;
             case "2": //activate guest 
+                
             case "3": //inactivate guest
+                this.inactivateGuest();
             case "4"://request to unsubscribe
                 return true;
             case "5":{
@@ -74,25 +82,36 @@ public class PartnerController implements ControllerInterface {
         System.out.println("Ingrese una contraseña para el invitado");
         String password = Utils.getReader().nextLine();
         userValidator.validPassword(password);
+       
         PersonDto personDto = new PersonDto();
         personDto.setName(name);
         personDto.setDocument(document);
         personDto.setCellPhone(celphone);
+        
         UserDto userDto = new UserDto();
         userDto.setPersonId(personDto);
         userDto.setUserName(userName);
         userDto.setPassword(password);
         userDto.setRole("guest");
-        this.service.createGuest(userDto);
+        
+        PartnerDto partnerDto = this.service.getSessionPartner();
+        
+        
+        GuestDto guestDto = new GuestDto();
+        guestDto.setUserId(userDto);
+        guestDto.setStatus("active");
+        guestDto.setPartnerId(partnerDto);
+        
+        this.service.createGuest(guestDto);
         System.out.println("Se ha creado el usuario exitosamente");
     }
     
     private void activateGuest() throws Exception{
-        System.out.println("Ingrese el id del invitado que quieres activar");
-        //this.service.activateGuest(userDto);//terminar mas tarde
+        
     }
     
     private void inactivateGuest() throws Exception {
-        System.out.println("Ingrese el id del invitado que quieres desactivar");
+        
     }
+    
 }

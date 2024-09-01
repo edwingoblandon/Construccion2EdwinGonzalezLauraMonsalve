@@ -3,8 +3,11 @@ package app.controller.validator;
 
 public class PartnerValidator extends CommonsValidator{
     
-    public double validAmount(String amount) throws Exception{
-        return super.isValidDouble("El monto de socio ", amount);
+    public double validAmount(String type, String amount) throws Exception{
+        double validAmount = super.isValidDouble("El monto del socio", amount);
+        if (validAmount < 0 || validAmount > 5000000) throw new Exception("El monto debe ser mayor o igual a 0 y menor a 5000000");
+        
+        return validAmount;
     }
     
     public void validType(String type) throws Exception{

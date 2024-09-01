@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import app.config.MYSQLConnection;
 import app.dao.interfaces.PartnerDao;
 import app.dto.PartnerDto;
+import app.dto.UserDto;
 import app.helpers.Helper;
 import app.model.Partner;
 import app.model.User;
@@ -34,10 +35,10 @@ public class PartnerDaoImplementation implements PartnerDao {
         String query = "INSERT INTO PARTNER (USERID, AMOUNT, TYPE, CREATIONDATE) VALUES (?, ?, ?, ?)";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
         preparedStatement.setLong(1, partner.getUserId().getId());
-        BigDecimal amount = BigDecimal.valueOf(partnerDto.getAmount());
+        BigDecimal amount = BigDecimal.valueOf(partner.getAmount());
         preparedStatement.setBigDecimal(2, amount);
         preparedStatement.setString(3, partner.getType());
-        Timestamp creationDate = Timestamp.valueOf(partnerDto.getCreationDate());
+        Timestamp creationDate = Timestamp.valueOf(partner.getCreationDate());
         preparedStatement.setTimestamp(4, creationDate);
         preparedStatement.execute();
         preparedStatement.close();
@@ -45,9 +46,10 @@ public class PartnerDaoImplementation implements PartnerDao {
     
     @Override
     public void deletePartner(PartnerDto partnerDto) throws Exception {
+        Partner partner = Helper.parse(partnerDto);
         String query = "DELETE FROM PARTNER WHERE ID = ?";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setLong(1, partnerDto.getId());
+        preparedStatement.setLong(1, partner.getId());
         preparedStatement.execute();
         preparedStatement.close();
     }
@@ -82,4 +84,49 @@ public class PartnerDaoImplementation implements PartnerDao {
     public void updatePartner(PartnerDto partnerDto){
         //pass
     }
-}
+    
+    @Override
+    public long countPartnersVip() throws Exception {
+        String query = "SELECT COUNT(ID) AS NUMBERVIP FROM PARTNER WHERE TYPE = ?";
+        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
+        preparedStatement.setString(1, "VIP");
+        ResultSet resulSet = preparedStatement.executeQuery();
+        if (resulSet.next()) {
+            long numberVip = resulSet.getLong("NUMBERVIP") ;
+            resulSet.close();
+            preparedStatement.close();
+            return numberVip;
+        }
+        resulSet.close();
+        preparedStatement.close();        
+        return 0;
+    }
+    
+    @Override
+    public PartnerDto findByUserId(UserDto userDto) throws Exception {
+        String query = "SELECT ID, USERID, TYPE, CREATIONDATE, AMOUNT FROM PARTNER WHERE USERID = ?";
+        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
+        preparedStatement.setLong(1, userDto.getId());
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next()) {
+            Partner partner = new Partner();
+            partner.setId(resultSet.getLong("ID"));
+            User user = new User();
+            user.setId(resultSet.getLong("USERID"));
+            partner.setUserId(user);
+            partner.setType(resultSet.getString("TYPE"));
+            partner.setCreationDate(resultSet.getTimestamp("CREATIONDATE").toLocalDateTime());
+            partner.setAmount(resultSet.getInt("AMOUNT"));
+
+            resultSet.close();
+            preparedStatement.close();
+            return Helper.parse(partner);
+        }
+
+        resultSet.close();
+        preparedStatement.close();
+        return null;
+    }
+} 
