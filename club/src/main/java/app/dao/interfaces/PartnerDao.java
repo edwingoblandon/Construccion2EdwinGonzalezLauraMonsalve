@@ -16,5 +16,5 @@ public interface PartnerDao {
     public void updatePartner(PartnerDto partnerDto) throws Exception;
     
     public long countPartnersVip() throws Exception;
-   // public PartnerDto findByUserId( UserDto userDto ) throws Exception;
+   public PartnerDto findByUserId( UserDto userDto ) throws Exception;
 }

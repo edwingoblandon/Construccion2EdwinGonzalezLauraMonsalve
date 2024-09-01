@@ -43,14 +43,27 @@ public class Service implements AdminService, LoginService , PartnerService{
     }
     
     @Override
+    public void activateGuest(GuestDto guestDto) throws Exception{
+        this.activateGuestInDb(guestDto);
+    }
+    
+    @Override
+    public void inactivateGuest(GuestDto guestDto) throws Exception{
+        this.inactivateGuestInDb(guestDto);
+    }
+    
+    @Override
     public void login(UserDto userDto) throws Exception {
         UserDto validateDto = userDao.findByUserName(userDto);
+        
         if (validateDto == null) {
             throw new Exception("no existe este usuario registrado");
         }
+        
         if (!userDto.getPassword().equals(validateDto.getPassword())) {
             throw new Exception("usuario o contraseña incorrecto");
         }
+        
         userDto.setRole(validateDto.getRole());
         userDto.setPersonId(validateDto.getPersonId());
         userDto.setId(validateDto.getId());
@@ -67,17 +80,23 @@ public class Service implements AdminService, LoginService , PartnerService{
         if (this.personDao.existsByDocument(personDto)) {
             throw new Exception("ya existe una persona con ese documento");
         }
+        
         this.personDao.createPerson(personDto);
+    }
+    public void requestToUnsubscribe(PartnerDto partnerDto) throws Exception{
+        
     }
     
     private void createUser(UserDto userDto) throws Exception {
         this.createPerson(userDto.getPersonId());
         PersonDto personDto = personDao.findByDocument(userDto.getPersonId());
         userDto.setPersonId(personDto);
+        
         if (this.userDao.existsByUserName(userDto)) {
             this.personDao.deletePerson(userDto.getPersonId());
             throw new Exception("ya existe un usuario con ese user name");
         }
+        
         try {
             this.userDao.createUser(userDto);
         } catch (SQLException e) {
@@ -108,16 +127,37 @@ public class Service implements AdminService, LoginService , PartnerService{
     
     private void createGuestInDb(GuestDto guestDto) throws Exception{
         this.createUser(guestDto.getUserId());
+        
         UserDto userDto = userDao.findByUserName(guestDto.getUserId());
         PersonDto personDto = personDao.findByDocument(guestDto.getUserId().getPersonId());
         guestDto.setUserId(userDto);
+        
         try {
             this.guestDao.createGuest(guestDto);
         } catch(SQLException e){
             System.out.println("Ocurrio un error: " + e.getMessage());
             this.userDao.deleteUser(guestDto.getUserId());
             this.personDao.deletePerson(personDto);
+        }    
+    }
+    
+    private void activateGuestInDb(GuestDto guestDto) throws Exception{
+       
+    }
+    
+    public void inactivateGuestInDb(GuestDto guestDto) throws Exception{
+     
+    }
+
+    @Override
+    public PartnerDto getSessionPartner() throws Exception {
+        if (user == null) {
+            throw new Exception("No hay usuario en sesión.");
         }
-        
+        PartnerDto partnerDto = partnerDao.findByUserId(user);
+        if (partnerDto == null) {
+            throw new Exception("No se encontro el socio asociado al usuario en sesion.");
+        }
+        return partnerDto;
     }
 }

@@ -92,7 +92,7 @@ public class AdminController implements ControllerInterface {
         if(type.equalsIgnoreCase("REGULAR")) {
             amount = partnerValidator.validAmount(type,"50000");}
         else{
-            System.out.println("Ingrese el monto del socio VIP");
+            System.out.println("Ingrese el monto inicial del socio VIP");
             amount = partnerValidator.validAmount(type,Utils.getReader().nextLine());
         }
         
