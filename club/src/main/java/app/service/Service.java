@@ -83,8 +83,55 @@ public class Service implements AdminService, LoginService , PartnerService{
         
         this.personDao.createPerson(personDto);
     }
-    public void requestToUnsubscribe(PartnerDto partnerDto) throws Exception{
+    @Override
+    public void requestToUnsubscribe() throws Exception{
+        this.unsubscribe();
+    }
+    
+    @Override
+    public PartnerDto getSessionPartner() throws Exception {
+        if (user == null) {
+            throw new Exception("No hay usuario en sesión.");
+        }
+        PartnerDto partnerDto = partnerDao.findByUserId(user);
+        if (partnerDto == null) {
+            throw new Exception("No se encontro el socio asociado al usuario en sesion.");
+        }
+        return partnerDto;
+    }
+    
+    @Override
+    public void updateGuestStatus(GuestDto guestDto) throws Exception{
+        this.guestDao.updateGuestStatus(guestDto);
+    }
+    
+    private void unsubscribe() throws Exception{
+        System.out.println("ENTROOO");
+        PartnerDto partnerDto = this.getSessionPartner();
+        System.out.println("Anterior paso");
+        PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
         
+        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());
+        if (userDto == null) throw new Exception("No se encontró el usuario con el nombre de usuario proporcionado");
+        
+        userDto.setPersonId(personDto);
+        partnerDto.setUserId(userDto);
+       
+        
+        if(partnerDto == null) throw new Exception("El partner no puede ser nulo");
+        if(personDto == null) throw new Exception("El person no puede ser nulo");
+        if(userDto == null) throw new Exception("El user no puede ser nulo");
+        try {
+            System.out.println("Tu solicitud ha sido aprobada de forma automatica... esto cambiara en un futuro.");
+            this.partnerDao.deletePartner(partnerDto);
+            System.out.println("Eliminado el partner");
+            this.userDao.deleteUser(partnerDto.getUserId());
+            System.out.println("User Eliminado");
+            this.personDao.deletePerson(personDto);
+            System.out.println("Persona eliminada\n EL SOCIO FUE ELIMINADO");
+        } catch (SQLException e) {
+            this.personDao.deletePerson(userDto.getPersonId());
+        }
     }
     
     private void createUser(UserDto userDto) throws Exception {
@@ -142,22 +189,36 @@ public class Service implements AdminService, LoginService , PartnerService{
     }
     
     private void activateGuestInDb(GuestDto guestDto) throws Exception{
-       
+        if (guestDto == null) {
+            throw new Exception("El invitado no puede ser nulo.");
+        }
+
+        GuestDto existingGuest = guestDao.findByGuestId(guestDto);
+        if (existingGuest == null) {
+            throw new Exception("El invitado no existe.");
+        }
+        
+        guestDto.setStatus("active");
+   
+        this.updateGuestStatus(guestDto);
+        System.out.println("El invitado ha sido activado correctamente.");
     }
     
-    public void inactivateGuestInDb(GuestDto guestDto) throws Exception{
-     
+    private void inactivateGuestInDb(GuestDto guestDto) throws Exception{
+        if (guestDto == null) {
+            throw new Exception("El invitado no puede ser nulo.");
+        }
+
+        GuestDto existingGuest = guestDao.findByGuestId(guestDto);
+        if (existingGuest == null) {
+            throw new Exception("El invitado no existe.");
+        }
+        
+        guestDto.setStatus("inactive");
+   
+        this.updateGuestStatus(guestDto);
+        System.out.println("El invitado ha sido desactivado correctamente.");
     }
 
-    @Override
-    public PartnerDto getSessionPartner() throws Exception {
-        if (user == null) {
-            throw new Exception("No hay usuario en sesión.");
-        }
-        PartnerDto partnerDto = partnerDao.findByUserId(user);
-        if (partnerDto == null) {
-            throw new Exception("No se encontro el socio asociado al usuario en sesion.");
-        }
-        return partnerDto;
-    }
+    
 }

@@ -8,6 +8,7 @@ public interface PartnerService {
     public void createGuest(GuestDto guestDto) throws Exception;
     public void activateGuest(GuestDto guestDto) throws Exception;
     public void inactivateGuest(GuestDto guestDto) throws Exception;
-    public void requestToUnsubscribe(PartnerDto partnerDto) throws Exception;
+    public void requestToUnsubscribe() throws Exception;
     public PartnerDto getSessionPartner() throws Exception;
+    public void updateGuestStatus(GuestDto guestDto) throws Exception;
 }

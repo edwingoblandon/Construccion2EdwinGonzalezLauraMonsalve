@@ -51,27 +51,39 @@ public class GuestDaoImplementation implements GuestDao {
     
     @Override
     public GuestDto findByGuestId(GuestDto guestDto) throws Exception {
-        String query = "SELECT ID, USERID, PARTNERID, STATUS FROM GUEST WHERE ID = ?";
+        String query = "SELECT g.ID, g.USERID, g.PARTNERID, g.STATUS, u.PERSONID " +
+                       "FROM GUEST g " +
+                       "JOIN USER u ON g.USERID = u.ID " +
+                       "WHERE g.ID = ?";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
         preparedStatement.setLong(1, guestDto.getId());
+
         ResultSet resultSet = preparedStatement.executeQuery();
+
         if (resultSet.next()) {
             Guest guest = new Guest();
             guest.setId(resultSet.getLong("ID"));
-            guest.setStatus(resultSet.getString("STATUS"));
-            
+
             User user = new User();
             user.setId(resultSet.getLong("USERID"));
-            
+
             Partner partner = new Partner();
             partner.setId(resultSet.getLong("PARTNERID"));
             
+            Person person = new Person();
+            person.setId(resultSet.getLong("PERSONID"));
+            if(person == null) throw new Exception("Error el person recuperado es null");
+            user.setPersonId(person);
+           
             guest.setUserId(user);
             guest.setPartnerId(partner);
+            guest.setStatus(resultSet.getString("STATUS"));
+
             resultSet.close();
             preparedStatement.close();
             return Helper.parse(guest);
         }
+
         resultSet.close();
         preparedStatement.close();
         return null;
@@ -96,7 +108,10 @@ public class GuestDaoImplementation implements GuestDao {
     
     @Override
     public GuestDto findByUserId(UserDto userDto) throws Exception {
-        String query = "SELECT ID, USERID, PARTNERID, STATUS FROM GUEST WHERE USERID = ?";
+        String query = "SELECT p.ID, p.USERID, p.TYPE, p.CREATIONDATE, p.AMOUNT, u.PERSONID " +
+                   "FROM PARTNER p " +
+                   "JOIN USER u ON p.USERID = u.ID " +
+                   "WHERE p.USERID = ?";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
         preparedStatement.setLong(1, userDto.getId());
 
@@ -105,11 +120,18 @@ public class GuestDaoImplementation implements GuestDao {
         if (resultSet.next()) {
             Guest guest = new Guest();
             guest.setId(resultSet.getLong("ID"));
+            
             User user = new User();
             user.setId(resultSet.getLong("USERID"));
-            guest.setUserId(user);
+            
+            Person person = new Person();
+            person.setId(resultSet.getLong("PERSONID"));
+            user.setPersonId(person);
+            
             Partner partner = new Partner();
             partner.setId(resultSet.getLong("PARTNERID"));
+            
+            guest.setUserId(user);
             guest.setPartnerId(partner);
             guest.setStatus(resultSet.getString("STATUS"));
 

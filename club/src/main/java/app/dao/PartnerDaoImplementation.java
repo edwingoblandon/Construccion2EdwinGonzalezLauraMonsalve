@@ -9,6 +9,7 @@ import app.dto.PartnerDto;
 import app.dto.UserDto;
 import app.helpers.Helper;
 import app.model.Partner;
+import app.model.Person;
 import app.model.User;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -104,7 +105,10 @@ public class PartnerDaoImplementation implements PartnerDao {
     
     @Override
     public PartnerDto findByUserId(UserDto userDto) throws Exception {
-        String query = "SELECT ID, USERID, TYPE, CREATIONDATE, AMOUNT FROM PARTNER WHERE USERID = ?";
+        String query = "SELECT p.ID, p.USERID, p.TYPE, p.CREATIONDATE, p.AMOUNT, u.PERSONID " +
+                   "FROM PARTNER p " +
+                   "JOIN USER u ON p.USERID = u.ID " +
+                   "WHERE p.USERID = ?";
         PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
         preparedStatement.setLong(1, userDto.getId());
 
@@ -113,8 +117,14 @@ public class PartnerDaoImplementation implements PartnerDao {
         if (resultSet.next()) {
             Partner partner = new Partner();
             partner.setId(resultSet.getLong("ID"));
+            
             User user = new User();
             user.setId(resultSet.getLong("USERID"));
+            
+            Person person = new Person();
+            person.setId(resultSet.getLong("PERSONID"));
+            user.setPersonId(person);
+            
             partner.setUserId(user);
             partner.setType(resultSet.getString("TYPE"));
             partner.setCreationDate(resultSet.getTimestamp("CREATIONDATE").toLocalDateTime());

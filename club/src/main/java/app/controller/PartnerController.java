@@ -52,10 +52,13 @@ public class PartnerController implements ControllerInterface {
                 this.createGuest();
                 return true;
             case "2": //activate guest 
-                
+                this.activateGuest();
+                return true;
             case "3": //inactivate guest
                 this.inactivateGuest();
-            case "4"://request to unsubscribe
+                return true;
+            case "4":
+                this.requestToUnsubscribe();
                 return true;
             case "5":{
                 System.out.println("Se ha cerrado sesion con exito.");
@@ -107,11 +110,35 @@ public class PartnerController implements ControllerInterface {
     }
     
     private void activateGuest() throws Exception{
-        
+        System.out.println("Ingrese el ID del invitado que desea activar");
+        long guestId = Long.parseLong(Utils.getReader().nextLine());
+        GuestDto guestDto = new GuestDto();
+        guestDto.setId(guestId);
+        guestDto.setStatus("activo");
+
+        service.activateGuest(guestDto);
+
+        System.out.println("El invitado ha sido activado exitosamente.");
     }
     
     private void inactivateGuest() throws Exception {
+        System.out.println("Ingrese el ID del invitado que desea desactivar");
+        long guestId = guestValidator.validId(Utils.getReader().nextLine());
         
+        GuestDto guestDto = new GuestDto();
+        guestDto.setId(guestId);
+        guestDto.setStatus("activo");
+
+        service.activateGuest(guestDto);
+
+        System.out.println("El invitado ha sido desactivado exitosamente.");
+        
+    }
+    
+    private void requestToUnsubscribe() throws Exception{
+        System.out.println("Estas seguro de eliminar tu usuario?. Para continuar escriba SI, para cancelar persiona ENTER.");
+        String opt = Utils.getReader().nextLine().toUpperCase();
+        if (opt.equalsIgnoreCase("SI")) service.requestToUnsubscribe();
     }
     
 }
