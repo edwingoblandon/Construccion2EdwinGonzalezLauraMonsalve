@@ -106,13 +106,11 @@ public class Service implements AdminService, LoginService , PartnerService{
     }
     
     private void unsubscribe() throws Exception{
-        System.out.println("ENTROOO");
         PartnerDto partnerDto = this.getSessionPartner();
-        System.out.println("Anterior paso");
         PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
         
-        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());
-        if (userDto == null) throw new Exception("No se encontró el usuario con el nombre de usuario proporcionado");
+        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());//Check
+        if (userDto == null) throw new Exception("No se encontró el usuario con el nombre de usuario proporcionado --");
         
         userDto.setPersonId(personDto);
         partnerDto.setUserId(userDto);
@@ -174,6 +172,7 @@ public class Service implements AdminService, LoginService , PartnerService{
     
     private void createGuestInDb(GuestDto guestDto) throws Exception{
         this.createUser(guestDto.getUserId());
+        guestDto.setPartnerId(getSessionPartner());
         
         UserDto userDto = userDao.findByUserName(guestDto.getUserId());
         PersonDto personDto = personDao.findByDocument(guestDto.getUserId().getPersonId());

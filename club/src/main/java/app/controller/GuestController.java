@@ -36,7 +36,7 @@ public class GuestController implements ControllerInterface{
     
     private boolean options(String option) throws Exception{
         switch(option){
-            case "1":{ //Convertirse en socio desarrollar
+            case "1":{ 
                 return true;
             }
             case "2":{

@@ -96,14 +96,10 @@ public class PartnerController implements ControllerInterface {
         userDto.setUserName(userName);
         userDto.setPassword(password);
         userDto.setRole("guest");
-        
-        PartnerDto partnerDto = this.service.getSessionPartner();
-        
-        
+
         GuestDto guestDto = new GuestDto();
         guestDto.setUserId(userDto);
         guestDto.setStatus("active");
-        guestDto.setPartnerId(partnerDto);
         
         this.service.createGuest(guestDto);
         System.out.println("Se ha creado el usuario exitosamente");
