@@ -1,8 +1,6 @@
 package app.service;
 
 import java.sql.SQLException;
-
-import app.dao.*;
 import app.dao.interfaces.*;
 import app.dto.GuestDto;
 import app.dto.PartnerDto;
@@ -11,24 +9,31 @@ import app.service.interfaces.AdminService;
 import app.service.interfaces.LoginService;
 import app.service.interfaces.PartnerService;
 import app.dto.UserDto;
+import app.service.interfaces.GuestService;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-
-public class Service implements AdminService, LoginService , PartnerService{
-    private final PersonDao personDao;
-    private final UserDao userDao;
-    private final PartnerDao partnerDao;
-    private final  GuestDao guestDao;
+@Getter
+@Setter
+@NoArgsConstructor
+@Service
+public class ClubService implements AdminService, LoginService , PartnerService, GuestService{
+    @Autowired
+    private PersonDao personDao;
+    @Autowired
+    private UserDao userDao;
+    @Autowired
+    private PartnerDao partnerDao;
+    @Autowired
+    private GuestDao guestDao;
     private DetailInvoiceDao detailInvoiceDao;
     private InvoiceDao invoiceDao;
     
     public static UserDto user;
-    
-    public Service(){
-        this.personDao = new PersonDaoImplementation();
-        this.userDao = new UserDaoImplementation();
-        this.partnerDao = new PartnerDaoImplementation();
-        this.guestDao = new GuestDaoImplementation();
-    }
+ 
     
     @Override
     public void createPartner(PartnerDto partnerDto) throws Exception{
@@ -42,12 +47,12 @@ public class Service implements AdminService, LoginService , PartnerService{
     
     @Override
     public void activateGuest(GuestDto guestDto) throws Exception{
-        this.activateGuestInDb(guestDto);
+        //this.activateGuestInDb(guestDto);
     }
     
     @Override
     public void inactivateGuest(GuestDto guestDto) throws Exception{
-        this.inactivateGuestInDb(guestDto);
+        //this.inactivateGuestInDb(guestDto);
     }
     
     @Override
@@ -74,13 +79,7 @@ public class Service implements AdminService, LoginService , PartnerService{
         System.out.println("se ha cerrado sesion");
     }
     
-    private void createPerson(PersonDto personDto) throws Exception {
-        if (this.personDao.existsByDocument(personDto)) {
-            throw new Exception("ya existe una persona con ese documento");
-        }
-        
-        this.personDao.createPerson(personDto);
-    }
+    
     @Override
     public void requestToUnsubscribe() throws Exception{
         this.unsubscribe();
@@ -103,33 +102,18 @@ public class Service implements AdminService, LoginService , PartnerService{
         this.guestDao.updateGuestStatus(guestDto);
     }
     
-    private void unsubscribe() throws Exception{
-        PartnerDto partnerDto = this.getSessionPartner();
-        PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
-        
-        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());//Check
-        if (userDto == null) throw new Exception("No se encontró el usuario con el nombre de usuario proporcionado --");
-        
-        userDto.setPersonId(personDto);
-        partnerDto.setUserId(userDto);
-       
-        
-        if(partnerDto == null) throw new Exception("El partner no puede ser nulo");
-        if(personDto == null) throw new Exception("El person no puede ser nulo");
-        if(userDto == null) throw new Exception("El user no puede ser nulo");
-        try {
-            this.personDao.deletePerson(personDto);
-            System.out.println("Persona eliminada\n EL SOCIO FUE ELIMINADO");
-        } catch (SQLException e) {
-            this.personDao.deletePerson(userDto.getPersonId());
+    private void createPerson(PersonDto personDto) throws Exception {
+        if (this.personDao.existsByDocument(personDto)) {
+            throw new Exception("ya existe una persona con ese documento");
         }
+        
+        this.personDao.createPerson(personDto);
+        
     }
     
     private void createUser(UserDto userDto) throws Exception {
         this.createPerson(userDto.getPersonId());
-        PersonDto personDto = personDao.findByDocument(userDto.getPersonId());
-        userDto.setPersonId(personDto);
-        
+
         if (this.userDao.existsByUserName(userDto)) {
             this.personDao.deletePerson(userDto.getPersonId());
             throw new Exception("ya existe un usuario con ese user name");
@@ -178,7 +162,29 @@ public class Service implements AdminService, LoginService , PartnerService{
         }    
     }
     
-    private void activateGuestInDb(GuestDto guestDto) throws Exception{
+    private void unsubscribe() throws Exception{
+        PartnerDto partnerDto = this.getSessionPartner();
+        PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
+        
+        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());//Check
+        if (userDto == null) throw new Exception("No se encontró el usuario con el nombre de usuario proporcionado --");
+        
+        userDto.setPersonId(personDto);
+        partnerDto.setUserId(userDto);
+       
+        
+        if(partnerDto == null) throw new Exception("El partner no puede ser nulo");
+        if(personDto == null) throw new Exception("El person no puede ser nulo");
+        if(userDto == null) throw new Exception("El user no puede ser nulo");
+        try {
+            this.personDao.deletePerson(personDto);
+            System.out.println("Persona eliminada\n EL SOCIO FUE ELIMINADO");
+        } catch (SQLException e) {
+            this.personDao.deletePerson(userDto.getPersonId());
+        }
+    }
+    
+    /*private void activateGuestInDb(GuestDto guestDto) throws Exception{
         if (guestDto == null) {
             throw new Exception("El invitado no puede ser nulo.");
         }
@@ -192,9 +198,9 @@ public class Service implements AdminService, LoginService , PartnerService{
    
         this.updateGuestStatus(guestDto);
         System.out.println("El invitado ha sido activado correctamente.");
-    }
+    }*/
     
-    private void inactivateGuestInDb(GuestDto guestDto) throws Exception{
+    /*private void inactivateGuestInDb(GuestDto guestDto) throws Exception{
         if (guestDto == null) {
             throw new Exception("El invitado no puede ser nulo.");
         }
@@ -208,7 +214,7 @@ public class Service implements AdminService, LoginService , PartnerService{
    
         this.updateGuestStatus(guestDto);
         System.out.println("El invitado ha sido desactivado correctamente.");
-    }
+    }*/
 
     
 }

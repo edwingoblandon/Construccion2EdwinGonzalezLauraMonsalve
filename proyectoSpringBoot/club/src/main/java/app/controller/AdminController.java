@@ -7,24 +7,30 @@ import app.controller.validator.UserValidator;
 import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
-import app.service.Service;
+import app.service.ClubService;
 import app.service.interfaces.AdminService;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@Controller
 public class AdminController implements ControllerInterface {
+    @Autowired
     private PersonValidator personValidator;
+    @Autowired
     private UserValidator userValidator;
+    @Autowired
     private PartnerValidator partnerValidator;
+    @Autowired
     private AdminService service;
     private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio \n2. Cerrar sesion \n";
 
-    public AdminController() {
-        this.personValidator = new PersonValidator();
-        this.userValidator = new UserValidator();
-        this.partnerValidator = new PartnerValidator();
-        this.service = new Service();
-    }
-    
     @Override
     public void session() throws Exception {
         boolean session = true;
@@ -58,7 +64,7 @@ public class AdminController implements ControllerInterface {
     
     private boolean menu(){
         try{
-            System.out.println("bienvenido(a) " + Service.user.getUserName());
+            System.out.println("bienvenido(a) " + ClubService.user.getUserName());
             System.out.println(MENU);
             String option = Utils.getReader().nextLine();
             return options(option);

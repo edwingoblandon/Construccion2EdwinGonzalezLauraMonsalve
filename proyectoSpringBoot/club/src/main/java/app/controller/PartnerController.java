@@ -4,26 +4,31 @@ import app.controller.validator.GuestValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
 import app.dto.GuestDto;
-import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
-import app.service.Service;
+import app.service.ClubService;
 import app.service.interfaces.PartnerService;
-import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@Controller
 public class PartnerController implements ControllerInterface {
+    @Autowired
     private PersonValidator personValidator;
+    @Autowired
     private UserValidator userValidator;
+    @Autowired
     private GuestValidator guestValidator;
+    @Autowired
     private PartnerService service;
     private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Solicitar Baja\n5. Cerrar sesion";
     
-    public PartnerController() {
-        this.personValidator = new PersonValidator();
-        this.userValidator = new UserValidator();
-        this.guestValidator = new GuestValidator();
-        this.service = new Service();
-    }
     
     @Override
     public void session() throws Exception {
@@ -35,7 +40,7 @@ public class PartnerController implements ControllerInterface {
     
     private boolean menu(){
         try{
-            System.out.println("bienvenido(a) " + Service.user.getUserName());
+            System.out.println("bienvenido(a) " + ClubService.user.getUserName());
             System.out.println(MENU);
             String option = Utils.getReader().nextLine();
             return options(option);

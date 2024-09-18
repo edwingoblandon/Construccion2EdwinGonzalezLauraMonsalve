@@ -5,14 +5,20 @@ import app.dao.repository.PersonRepository;
 import app.dto.PersonDto;
 import app.helpers.Helper;
 import app.model.Person;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-@Repository
+@Getter
+@Setter
+@NoArgsConstructor
+@Service
 public class PersonDaoImplementation implements PersonDao {
     
     @Autowired
-    private PersonRepository personRepository;
+    PersonRepository personRepository;
 
     @Override
     public boolean existsByDocument(PersonDto personDto) throws Exception {
@@ -23,6 +29,7 @@ public class PersonDaoImplementation implements PersonDao {
     public void createPerson(PersonDto personDto) throws Exception {
         Person person = Helper.parse(personDto);
         personRepository.save(person);
+        personDto.setId(person.getId());
     }
     
     @Override

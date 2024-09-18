@@ -9,14 +9,20 @@ import app.helpers.Helper;
 import app.model.Partner;
 
 import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
-@Repository
+@Getter
+@Setter
+@NoArgsConstructor
+@Service
 public class PartnerDaoImplementation implements PartnerDao {
     
     @Autowired
-    private PartnerRepository partnerRepository;
+    PartnerRepository partnerRepository;
     
     @Override
     public boolean existsById(PartnerDto partnerDto) throws Exception {

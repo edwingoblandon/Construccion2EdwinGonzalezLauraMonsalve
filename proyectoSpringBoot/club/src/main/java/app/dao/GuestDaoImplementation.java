@@ -1,122 +1,62 @@
 package app.dao;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
-import app.config.MYSQLConnection;
 import app.dao.interfaces.GuestDao;
+import app.dao.repository.GuestRepository;
 import app.dto.GuestDto;
-import app.dto.UserDto;
 import app.helpers.Helper;
 import app.model.Guest;
-import app.model.Partner;
-import app.model.Person;
-import app.model.User;
 
+
+import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@Service
 public class GuestDaoImplementation implements GuestDao {
     
+    @Autowired
+    GuestRepository guestRepository;
+    
     @Override
-    public boolean existsByGuestId(GuestDto guestDto) throws Exception {
-        String query = "SELECT 1 FROM GUEST WHERE ID = ?";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setLong(1, guestDto.getId());
-        ResultSet resultSet = preparedStatement.executeQuery();
-        boolean exists = resultSet.next();
-        resultSet.close();
-        preparedStatement.close();
-        return exists;
+    public boolean existsById(GuestDto guestDto) throws Exception {
+        return guestRepository.existsById(guestDto.getId());
     }
     
     @Override
     public void createGuest(GuestDto guestDto) throws Exception {
         Guest guest = Helper.parse(guestDto);
-        String query = "INSERT INTO GUEST (USERID, PARTNERID, STATUS) VALUES (?, ?, ?)";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setLong(1, guest.getUserId().getId());
-        preparedStatement.setLong(2, guest.getPartnerId().getId());
-        preparedStatement.setString(3, guest.getStatus());
-        preparedStatement.execute();
-        preparedStatement.close();
+        guestRepository.save(guest);
     }
     
     @Override
-    public void deleteGuest(GuestDto guestDto) throws Exception {
-        Guest guest = Helper.parse(guestDto);
-        String query = "DELETE FROM GUEST WHERE ID = ?";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setLong(1, guest.getId());
-        preparedStatement.execute();
-        preparedStatement.close();
-    }
-    
-    @Override
-    public GuestDto findByGuestId(GuestDto guestDto) throws Exception {
-        String query = "SELECT g.ID, g.USERID, g.PARTNERID, g.STATUS, u.PERSONID " +
-                       "FROM GUEST g " +
-                       "JOIN USER u ON g.USERID = u.ID " +
-                       "WHERE g.ID = ?";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setLong(1, guestDto.getId());
-
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        if (resultSet.next()) {
-            Guest guest = new Guest();
-            guest.setId(resultSet.getLong("ID"));
-
-            User user = new User();
-            user.setId(resultSet.getLong("USERID"));
-
-            Partner partner = new Partner();
-            partner.setId(resultSet.getLong("PARTNERID"));
-            
-            Person person = new Person();
-            person.setId(resultSet.getLong("PERSONID"));
-            if(person == null) throw new Exception("Error el person recuperado es null");
-            user.setPersonId(person);
-           
-            guest.setUserId(user);
-            guest.setPartnerId(partner);
-            guest.setStatus(resultSet.getString("STATUS"));
-
-            resultSet.close();
-            preparedStatement.close();
-            return Helper.parse(guest);
-        }
-
-        resultSet.close();
-        preparedStatement.close();
-        return null;
+    public GuestDto findById(GuestDto guestDto) throws Exception {
+        Optional<Guest> optionalGuest = guestRepository.findById(guestDto.getId());
+        
+        if(!optionalGuest.isPresent()) throw new Exception("El invitado no se encontro");
+        
+        Guest guest = optionalGuest.get();
+        
+        return Helper.parse(guest);
     }
     
     @Override
     public void updateGuest(GuestDto guestDto) throws Exception {
-        String query = "UPDATE GUEST SET USERID = ?, PARTNERID = ?, STATUS = ? WHERE ID = ?";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-
-        preparedStatement.setLong(1, guestDto.getUserId().getId());
-        preparedStatement.setLong(2, guestDto.getPartnerId().getId());
-        preparedStatement.setString(3, guestDto.getStatus());
-        preparedStatement.setLong(4, guestDto.getId());
-
-        preparedStatement.executeUpdate();
-
-        preparedStatement.close();
+        //pass
     }
     
     
     @Override
     public void updateGuestStatus(GuestDto guestDto) throws Exception {
-        String query = "UPDATE GUEST SET STATUS = ? WHERE ID = ? ";
-        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
-        preparedStatement.setString( 1, guestDto.getStatus() );
-        preparedStatement.setLong( 2, guestDto.getId());
-
-        preparedStatement.execute();
-        preparedStatement.close();
+        //pass
     }
     
-    @Override
+    /*@Override
     public GuestDto findByUserId(UserDto userDto) throws Exception {
         String query = "SELECT p.ID, p.USERID, p.TYPE, p.CREATIONDATE, p.AMOUNT, u.PERSONID " +
                    "FROM PARTNER p " +
@@ -153,6 +93,6 @@ public class GuestDaoImplementation implements GuestDao {
         resultSet.close();
         preparedStatement.close();
         return null;
-    }   
+    }   */
 }
 
