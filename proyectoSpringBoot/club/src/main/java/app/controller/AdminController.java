@@ -90,17 +90,8 @@ public class AdminController implements ControllerInterface {
         String password = Utils.getReader().nextLine();
         userValidator.validPassword(password);
         
-
-        System.out.println("Ingrese el tipo de socio");
-        String type = Utils.getReader().nextLine();
-        partnerValidator.validType(type);
-        double amount;
-        if(type.equalsIgnoreCase("REGULAR")) {
-            amount = partnerValidator.validAmount(type,"50000");}
-        else{
-            System.out.println("Ingrese el monto inicial del socio VIP");
-            amount = partnerValidator.validAmount(type,Utils.getReader().nextLine());
-        }
+        String type = ("REGULAR");
+        double amount = 50000;
         
         
         PersonDto personDto = new PersonDto();

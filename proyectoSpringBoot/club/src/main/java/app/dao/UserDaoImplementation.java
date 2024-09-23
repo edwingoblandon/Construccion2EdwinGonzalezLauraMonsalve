@@ -22,7 +22,6 @@ public class UserDaoImplementation implements UserDao {
     
     @Override
     public UserDto findByUserName(UserDto userDto) throws Exception {
-        System.out.println("Buscando al usuario: " + userDto.getUserName() +"...");
         User user = userRepository.findByUserName(userDto.getUserName());
         return Helper.parse(user);
     }
@@ -36,6 +35,7 @@ public class UserDaoImplementation implements UserDao {
     public void createUser(UserDto userDto) throws Exception {
         User user = Helper.parse(userDto);
         userRepository.save(user);
+        userDto.setId(user.getId());
     }
 
 }

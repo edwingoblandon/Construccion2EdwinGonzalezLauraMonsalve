@@ -34,6 +34,7 @@ public class PartnerDaoImplementation implements PartnerDao {
     public void createPartner(PartnerDto partnerDto) throws Exception {
         Partner partner = Helper.parse(partnerDto);
         partnerRepository.save(partner);
+        partnerDto.setId(partner.getId());
     }
     
     @Override

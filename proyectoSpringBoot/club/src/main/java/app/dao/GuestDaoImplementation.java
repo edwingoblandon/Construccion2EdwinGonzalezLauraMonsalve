@@ -32,6 +32,7 @@ public class GuestDaoImplementation implements GuestDao {
     public void createGuest(GuestDto guestDto) throws Exception {
         Guest guest = Helper.parse(guestDto);
         guestRepository.save(guest);
+        guestDto.setId(guest.getId());
     }
     
     @Override

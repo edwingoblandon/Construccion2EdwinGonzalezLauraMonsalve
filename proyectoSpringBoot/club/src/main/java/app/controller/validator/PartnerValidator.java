@@ -18,9 +18,4 @@ public class PartnerValidator extends CommonsValidator{
         
         return validAmount;
     }
-    
-    public void validType(String type) throws Exception{
-        if (!type.equalsIgnoreCase("VIP") && !type.equalsIgnoreCase("REGULAR")) throw new Exception("El tipo de socio debe ser VIP o REGULAR");
-        super.isValidString("El tipo de socio ", type);
-    }
 }

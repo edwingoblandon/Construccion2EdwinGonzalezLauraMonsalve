@@ -1,63 +1,36 @@
 package app.model;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name="invoice")
 public class Invoice {
+    @Id
+    @GeneratedValue
+    @Column(name = "id")
     private long id;
+    @JoinColumn(name="userid")
+    @ManyToOne
     private User userId;
+    @JoinColumn(name="partnerid")
+    @ManyToOne
     private Partner partnerId;
-    private LocalDateTime dateOfCreation;
+    @Column(name="creationdate")
+    private LocalDateTime creationDate;
+    @Column(name="totalamount")
     private double totalAmount;
-    private boolean status;
-    
-    public Invoice(){}
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public User getUserId() {
-        return userId;
-    }
-
-    public void setUserId(User userId) {
-        this.userId = userId;
-    }
-
-    public Partner getPartnerId() {
-        return partnerId;
-    }
-
-    public void setPartnerId(Partner partnerId) {
-        this.partnerId = partnerId;
-    }
-
-    public LocalDateTime getDateOfCreation() {
-        return dateOfCreation;
-    }
-
-    public void setDateOfCreation(LocalDateTime dateOfCreation) {
-        this.dateOfCreation = dateOfCreation;
-    }
-
-    public double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-    
-    
+    @Column(name="status")
+    private boolean status; 
 }

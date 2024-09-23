@@ -29,7 +29,9 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private PartnerDao partnerDao;
     @Autowired
     private GuestDao guestDao;
+    @Autowired
     private DetailInvoiceDao detailInvoiceDao;
+    @Autowired
     private InvoiceDao invoiceDao;
     
     public static UserDto user;
@@ -129,19 +131,18 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     private void createPartnerInDb(PartnerDto partnerDto) throws Exception {
         this.createUser(partnerDto.getUserId());
-        UserDto userDto = userDao.findByUserName(partnerDto.getUserId());
-        PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
-        partnerDto.setUserId(userDto);
         
+        //¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ Apply in promotions of REGULAR to VIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (partnerDto.getType().equalsIgnoreCase("VIP") && this.partnerDao.countPartnersVip() >= 5 ) {
-            this.personDao.deletePerson(personDto);
+            this.personDao.deletePerson(partnerDto.getUserId().getPersonId());
             throw new Exception("Ya existen 5 socios VIP");
-        }
+        }//pass
 
         try {
             this.partnerDao.createPartner(partnerDto);
         } catch (SQLException e) {
             System.out.println("Ocurrio un error: " + e.getMessage());
+            this.personDao.deletePerson(partnerDto.getUserId().getPersonId());
         }
     }
 
