@@ -29,9 +29,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private PartnerDao partnerDao;
     @Autowired
     private GuestDao guestDao;
-    @Autowired
     private DetailInvoiceDao detailInvoiceDao;
-    @Autowired
     private InvoiceDao invoiceDao;
     
     public static UserDto user;
@@ -49,12 +47,16 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     @Override
     public void activateGuest(GuestDto guestDto) throws Exception{
-        //this.activateGuestInDb(guestDto);
+        guestDto = guestDao.findById(guestDto);
+        guestDto.setStatus("Active");
+        guestDao.updateGuest(guestDto);
     }
     
     @Override
     public void inactivateGuest(GuestDto guestDto) throws Exception{
-        //this.inactivateGuestInDb(guestDto);
+        guestDto = guestDao.findById(guestDto);
+        guestDto.setStatus("Inactive");
+        guestDao.updateGuest(guestDto);
     }
     
     @Override
@@ -97,11 +99,6 @@ public class ClubService implements AdminService, LoginService , PartnerService,
             throw new Exception("No se encontro el socio asociado al usuario en sesion.");
         }
         return partnerDto;
-    }
-    
-    @Override
-    public void updateGuestStatus(GuestDto guestDto) throws Exception{
-        this.guestDao.updateGuestStatus(guestDto);
     }
     
     private void createPerson(PersonDto personDto) throws Exception {
@@ -151,15 +148,16 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         this.createUser(guestDto.getUserId());
         guestDto.setPartnerId(getSessionPartner());
         
-        UserDto userDto = userDao.findByUserName(guestDto.getUserId());
-        PersonDto personDto = personDao.findByDocument(guestDto.getUserId().getPersonId());
-        guestDto.setUserId(userDto);
+        if ("regular".equalsIgnoreCase(guestDto.getPartnerId().getType())) {
+            int activeGuestCount = guestDao.countActiveGuestsByPartnerId(guestDto);
+            if (activeGuestCount >= 3) throw new Exception("Haz alcanzado el maximo de invitados activos");
+        }
         
         try {
             this.guestDao.createGuest(guestDto);
         } catch(SQLException e){
             System.out.println("Ocurrio un error: " + e.getMessage());
-            this.personDao.deletePerson(personDto);
+            this.personDao.deletePerson(guestDto.getUserId().getPersonId());
         }    
     }
     

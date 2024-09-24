@@ -12,8 +12,6 @@ public interface GuestDao {
     public GuestDto findById(GuestDto guestDto) throws Exception;
     
     public void updateGuest(GuestDto guestDto) throws Exception;
-    
-    public void updateGuestStatus( GuestDto guestDto ) throws Exception;
-    
-   //public GuestDto findByUserId( UserDto userDto ) throws Exception;
+
+    public int countActiveGuestsByPartnerId(GuestDto guestDto) throws Exception;
 }

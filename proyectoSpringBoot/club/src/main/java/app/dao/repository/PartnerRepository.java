@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PartnerRepository extends JpaRepository<Partner,Long>{
-    long countByType(String type);
+    public long countByType(String type);
     
     @Query("SELECT p FROM Partner p JOIN p.userId u WHERE u.id = :userId")
     Partner findByUserId(@Param("userId") Long userId);

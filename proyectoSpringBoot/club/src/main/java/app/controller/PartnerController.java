@@ -27,7 +27,7 @@ public class PartnerController implements ControllerInterface {
     private GuestValidator guestValidator;
     @Autowired
     private PartnerService service;
-    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Solicitar Baja\n5. Cerrar sesion";
+    private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Recargar fondos\n5. Solicitar VIP\n6. Solicitar Baja\n7. Cerrar sesion";
     
     
     @Override
@@ -63,9 +63,12 @@ public class PartnerController implements ControllerInterface {
                 this.inactivateGuest();
                 return true;
             case "4":
+            case "5":
+                return true;
+            case "6":
                 this.requestToUnsubscribe();
                 return true;
-            case "5":{
+            case "7":{
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
             } 
@@ -115,8 +118,6 @@ public class PartnerController implements ControllerInterface {
         long guestId = Long.parseLong(Utils.getReader().nextLine());
         GuestDto guestDto = new GuestDto();
         guestDto.setId(guestId);
-        guestDto.setStatus("activo");
-
         service.activateGuest(guestDto);
 
         System.out.println("El invitado ha sido activado exitosamente.");
@@ -128,9 +129,8 @@ public class PartnerController implements ControllerInterface {
         
         GuestDto guestDto = new GuestDto();
         guestDto.setId(guestId);
-        guestDto.setStatus("activo");
 
-        service.activateGuest(guestDto);
+        service.inactivateGuest(guestDto);
 
         System.out.println("El invitado ha sido desactivado exitosamente.");
         
