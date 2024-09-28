@@ -4,6 +4,7 @@ import app.dao.interfaces.GuestDao;
 import app.dao.repository.GuestRepository;
 import app.dto.GuestDto;
 import app.dto.PartnerDto;
+import app.dto.UserDto;
 import app.helpers.Helper;
 import app.model.Guest;
 import java.util.List;
@@ -46,6 +47,16 @@ public class GuestDaoImplementation implements GuestDao {
         
         Guest guest = optionalGuest.get();
         return Helper.parse(guest);
+    }
+    
+    @Override
+    public GuestDto findByUserId(UserDto userDto) throws Exception {
+        Guest guest = guestRepository.findByUserId(userDto.getId());
+    
+        if(guest == null) throw new Exception("No se encontro un socio asociado al invitado");
+        
+        return Helper.parse(guest);
+       
     }
     
     @Override

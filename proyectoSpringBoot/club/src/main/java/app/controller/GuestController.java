@@ -21,7 +21,7 @@ public class GuestController implements ControllerInterface{
     private UserValidator userValidator;
     @Autowired
     private GuestService service;
-    private static final String MENU = "Ingrese el numero de la opcion\n1. convertirse en socio \n2. Cerrar sesion\n";
+    private static final String MENU = "Ingrese el numero de la opcion\n1. convertirse en socio \n2. Cerrar sesion";
     
     @Override
     public void session() throws Exception {
@@ -47,7 +47,7 @@ public class GuestController implements ControllerInterface{
     private boolean options(String option) throws Exception{
         switch(option){
             case "1":{ 
-                return true;
+                return convertGuestToPartner();
             }
             case "2":{
                 System.out.println("Se ha cerrado sesion con exito.");
@@ -58,5 +58,18 @@ public class GuestController implements ControllerInterface{
                 return true;
             }
         }
+    }
+    
+    private boolean convertGuestToPartner() throws Exception{
+        System.out.println("Estas seguro de convertirte en socio?. Para continuar escriba SI, para cancelar persiona ENTER.");
+        String opt = Utils.getReader().nextLine().toUpperCase();
+        
+        if (opt.equals("SI")) {
+            service.convertGuestToPartner();
+            System.out.println("Proceso realizado con exito!\nSe ha cerrado la sesion, vuelve a iniciar sesion");
+            return false;
+        }
+        System.out.println("Cancelacion del proceso con exito");
+        return true;
     }
 }

@@ -1,11 +1,15 @@
 
 package app.helpers;
 
+import app.dto.DetailInvoiceDto;
 import app.dto.GuestDto;
+import app.dto.InvoiceDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
 import app.dto.PartnerDto;
+import app.model.DetailInvoice;
 import app.model.Guest;
+import app.model.Invoice;
 import app.model.Person;
 import app.model.User;
 import app.model.Partner;
@@ -89,4 +93,46 @@ public abstract class Helper {
         return guest;
     }
     
+    public static InvoiceDto parse(Invoice invoice){
+        InvoiceDto invoiceDto = new InvoiceDto();
+        invoiceDto.setId(invoice.getId());
+        invoiceDto.setDateOfCreation(invoice.getCreationDate());
+        invoiceDto.setStatus(invoice.getStatus());
+        invoiceDto.setTotalAmount(invoice.getTotalAmount());
+        invoiceDto.setPartnerId(parse(invoice.getPartnerId()));
+        invoiceDto.setUserId(parse(invoice.getUserId()));
+        return invoiceDto;
+    }
+    
+    public static Invoice parse(InvoiceDto invoiceDto){
+        Invoice invoice = new Invoice();
+        invoice.setId(invoiceDto.getId());
+        invoice.setCreationDate(invoiceDto.getDateOfCreation());
+        invoice.setStatus(invoiceDto.getStatus());
+        invoice.setTotalAmount(invoiceDto.getTotalAmount());
+        invoice.setPartnerId(parse(invoiceDto.getPartnerId()));
+        invoice.setUserId(parse(invoiceDto.getUserId()));
+        return invoice;
+    }
+    
+    public static DetailInvoiceDto parse(DetailInvoice detailInvoice){
+        DetailInvoiceDto detailInvoiceDto = new DetailInvoiceDto();
+        detailInvoiceDto.setId(detailInvoice.getId());
+        detailInvoiceDto.setDescription(detailInvoice.getDescription());
+        detailInvoiceDto.setItem(detailInvoice.getItem());
+        detailInvoiceDto.setAmount(detailInvoice.getAmount());
+        detailInvoiceDto.setInvoiceId(parse(detailInvoice.getInvoiceId()));
+        return detailInvoiceDto;
+    }
+    
+    public static DetailInvoice parse(DetailInvoiceDto detailInvoiceDto){
+        DetailInvoice detailInvoice = new DetailInvoice();
+        detailInvoice.setId(detailInvoiceDto.getId());
+        detailInvoice.setDescription(detailInvoiceDto.getDescription());
+        detailInvoice.setItem(detailInvoiceDto.getItem());
+        detailInvoice.setAmount(detailInvoiceDto.getAmount());
+        detailInvoice.setInvoiceId(parse(detailInvoiceDto.getInvoiceId()));
+        return detailInvoice;
+    }
+
 }

@@ -10,6 +10,7 @@ import app.service.interfaces.LoginService;
 import app.service.interfaces.PartnerService;
 import app.dto.UserDto;
 import app.service.interfaces.GuestService;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -31,7 +32,9 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private PartnerDao partnerDao;
     @Autowired
     private GuestDao guestDao;
+    @Autowired
     private DetailInvoiceDao detailInvoiceDao;
+    @Autowired
     private InvoiceDao invoiceDao;
     
     public static UserDto user;
@@ -49,54 +52,24 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     @Override
     public void activateGuest(GuestDto guestDto) throws Exception{
-        this.isValidGuestByPartner(guestDto, getSessionPartner());
-        guestDto = guestDao.findById(guestDto);
-        if ("regular".equalsIgnoreCase(guestDto.getPartnerId().getType())){
-            int activeGuestCount = guestDao.countActiveGuestsByPartnerId(guestDto);
-            if (activeGuestCount >= 3) throw new Exception("ERROR! Ya haz alcanzado el maximo de invitados activos");
-        }
-        guestDto.setStatus("Active");
-        guestDao.updateGuest(guestDto);
+        this.activateGuestInDb(guestDto);
+    }
+    
+    @Override
+    public void convertGuestToPartner() throws Exception{
+        this.convertGuestToPartnerInDb();
     }
     
     @Override
     public void inactivateGuest(GuestDto guestDto) throws Exception{
-        this.isValidGuestByPartner(guestDto, getSessionPartner());
-        guestDto = guestDao.findById(guestDto);
-        guestDto.setStatus("Inactive");
-        guestDao.updateGuest(guestDto);
+        this.inactivateGuestInDb(guestDto);
     }
     
     @Override
     public void showGuestsForPartnerSession(String status) throws Exception{
         this.showGuestsForPartner(status);
     }
-    
-    @Override
-    public void login(UserDto userDto) throws Exception {
-        UserDto validateDto = userDao.findByUserName(userDto);
-        
-        if (validateDto == null) {
-            throw new Exception("No existe este usuario registrado");
-        }
-        
-        if (!userDto.getPassword().equals(validateDto.getPassword())) {
-            throw new Exception("Usuario o contraseña incorrecto");
-        }
-        
-        userDto.setRole(validateDto.getRole());
-        userDto.setPersonId(validateDto.getPersonId());
-        userDto.setId(validateDto.getId());
-        user = userDto;
-    }
-        
-    @Override
-    public void logout() {
-        user = null;
-        System.out.println("se ha cerrado sesion");
-    }
-    
-    
+
     @Override
     public void unsubscribeRequest() throws Exception{
         this.unsubscribe();
@@ -112,6 +85,26 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         this.increaseFundsInDb(amount);
     }
     
+    @Override
+    public void login(UserDto userDto) throws Exception {
+        UserDto validateDto = userDao.findByUserName(userDto);
+        
+        if (validateDto == null) throw new Exception("No existe este usuario registrado");
+        
+        if (!userDto.getPassword().equals(validateDto.getPassword())) throw new Exception("Usuario o contraseña incorrecto");
+        
+        userDto.setRole(validateDto.getRole());
+        userDto.setPersonId(validateDto.getPersonId());
+        userDto.setId(validateDto.getId());
+        user = userDto;
+    }
+        
+    @Override
+    public void logout() {
+        user = null;
+        System.out.println("se ha cerrado sesion");
+    }
+    
     private PartnerDto getSessionPartner() throws Exception {
         if (user == null) {
             throw new Exception("No hay usuario en sesion.");
@@ -121,6 +114,17 @@ public class ClubService implements AdminService, LoginService , PartnerService,
             throw new Exception("No se encontro el socio asociado al usuario en sesion");
         }
         return partnerDto;
+    }
+    
+    private GuestDto getSessionGuest() throws Exception {
+        if (user == null) {
+            throw new Exception("No hay usuario en sesion.");
+        }
+        GuestDto guestDto = guestDao.findByUserId(user);
+        if (guestDto == null) {
+            throw new Exception("No se encontro el socio asociado al usuario en sesion");
+        }
+        return guestDto;
     }
     
     private void createPerson(PersonDto personDto) throws Exception {
@@ -176,6 +180,43 @@ public class ClubService implements AdminService, LoginService , PartnerService,
             System.out.println("Ocurrio un error: " + e.getMessage());
             this.personDao.deletePerson(guestDto.getUserId().getPersonId());
         }    
+    }
+    
+    private void activateGuestInDb(GuestDto guestDto) throws Exception{
+        this.isValidGuestByPartner(guestDto, getSessionPartner());
+        guestDto = guestDao.findById(guestDto);
+        if ("regular".equalsIgnoreCase(guestDto.getPartnerId().getType())){
+            int activeGuestCount = guestDao.countActiveGuestsByPartnerId(guestDto);
+            if (activeGuestCount >= 3) throw new Exception("ERROR! Ya haz alcanzado el maximo de invitados activos");
+        }
+        guestDto.setStatus("Active");
+        guestDao.updateGuest(guestDto);
+    }
+    
+    private void inactivateGuestInDb(GuestDto guestDto) throws Exception{
+        this.isValidGuestByPartner(guestDto, getSessionPartner());
+        guestDto = guestDao.findById(guestDto);
+        guestDto.setStatus("Inactive");
+        guestDao.updateGuest(guestDto);
+    }
+    
+    private void convertGuestToPartnerInDb() throws Exception{
+        GuestDto guestDto = this.getSessionGuest();
+        guestDto = guestDao.findById(guestDto);
+        guestDto.setStatus("CONVERTED_TO_PARTNER");
+        guestDao.updateGuest(guestDto);
+   
+        UserDto userDto = userDao.findById(guestDto.getUserId());
+        userDto.setRole("partner");
+        userDao.updateUser(userDto);
+        
+        PartnerDto partnerDto = new PartnerDto();
+        partnerDto.setUserId(user);
+        partnerDto.setAmount(50000);
+        partnerDto.setType("regular");
+        partnerDto.setCreationDate(LocalDateTime.now());
+
+        partnerDao.createPartner(partnerDto);
     }
     
     private void unsubscribe() throws Exception{

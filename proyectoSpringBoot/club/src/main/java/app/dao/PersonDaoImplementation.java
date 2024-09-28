@@ -19,7 +19,7 @@ public class PersonDaoImplementation implements PersonDao {
     
     @Autowired
     PersonRepository personRepository;
-
+    
     @Override
     public boolean existsByDocument(PersonDto personDto) throws Exception {
         return personRepository.existsByDocument(personDto.getDocument());
@@ -43,5 +43,10 @@ public class PersonDaoImplementation implements PersonDao {
         Person person = personRepository.findByDocument(personDto.getDocument());
         return Helper.parse(person);
     }
-
+    
+    @Override
+    public void updatePerson(PersonDto personDto) throws Exception {
+        Person person = Helper.parse(personDto);
+        personRepository.save(person);
+    }
 }

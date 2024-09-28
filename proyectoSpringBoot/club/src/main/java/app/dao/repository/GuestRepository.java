@@ -14,4 +14,7 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
     
     @Query("SELECT g FROM Guest g WHERE g.partnerId.id = :partnerId")
     List<Guest> findByPartnerId(@Param("partnerId") Long partnerId);
+    
+    @Query("SELECT g FROM Guest g JOIN g.userId u WHERE u.id = :userId")
+    Guest findByUserId(@Param("userId") Long userId);
 }

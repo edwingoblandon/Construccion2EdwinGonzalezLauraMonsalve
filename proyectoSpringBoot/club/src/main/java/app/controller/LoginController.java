@@ -73,13 +73,15 @@ public class LoginController implements ControllerInterface {
         System.out.println("ingrese la contraseña");
         String password= Utils.getReader().nextLine();
         userValidator.validPassword(password);
+        
         UserDto userDto = new UserDto();
         userDto.setPassword(password);
         userDto.setUserName(userName);
+        
         this.service.login(userDto);
-        if(roles.get(userDto.getRole())==null) {
-                throw new Exception ("Rol invalido");
-        }
+        
+        if(roles.get(userDto.getRole())==null) throw new Exception ("Rol invalido");
+        
         roles.get(userDto.getRole()).session();
     }
 }

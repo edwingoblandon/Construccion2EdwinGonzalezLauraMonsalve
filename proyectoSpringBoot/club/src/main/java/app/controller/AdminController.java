@@ -29,7 +29,7 @@ public class AdminController implements ControllerInterface {
     private PartnerValidator partnerValidator;
     @Autowired
     private AdminService service;
-    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver facturas\n3. Promover a VIP\n4. Cerrar sesion \n";
+    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver facturas\n3. Promover a VIP\n4. Cerrar sesion";
 
     @Override
     public void session() throws Exception {
