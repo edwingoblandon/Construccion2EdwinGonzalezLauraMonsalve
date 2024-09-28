@@ -103,7 +103,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public void VipPromotionRequest() throws Exception{
+    public void vipPromotionRequest() throws Exception{
         this.promotionVip();
     }
     

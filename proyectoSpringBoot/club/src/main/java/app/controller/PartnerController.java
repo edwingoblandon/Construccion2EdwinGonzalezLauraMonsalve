@@ -69,7 +69,7 @@ public class PartnerController implements ControllerInterface {
                 this.increaseFunds();
                 return true;
             case "5":
-                this.VipPromotionRequest();
+                this.vipPromotionRequest();
                 return true;
             case "6":
                 return this.unsubscribeRequest();
@@ -154,12 +154,12 @@ public class PartnerController implements ControllerInterface {
         return true;
     }
     
-    private void VipPromotionRequest() throws Exception{
+    private void vipPromotionRequest() throws Exception{
         System.out.println("Estas seguro de realizar la solicitud a VIP?. Para continuar escriba SI, para cancelar persiona ENTER.");
         String opt = Utils.getReader().nextLine().toUpperCase();
         
         if (opt.equalsIgnoreCase("SI")){
-            service.VipPromotionRequest();
+            service.vipPromotionRequest();
             System.out.println("Se ha enviado su solicitud para promoverlo a VIP");
         } 
     }
