@@ -67,7 +67,7 @@ public class PartnerController implements ControllerInterface {
                 return true;
             case "6":
                 this.requestToUnsubscribe();
-                return true;
+                return false;
             case "7":{
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
@@ -107,13 +107,14 @@ public class PartnerController implements ControllerInterface {
 
         GuestDto guestDto = new GuestDto();
         guestDto.setUserId(userDto);
-        guestDto.setStatus("active");
+        guestDto.setStatus("Inactive");
         
         this.service.createGuest(guestDto);
         System.out.println("Se ha creado el usuario exitosamente");
     }
     
     private void activateGuest() throws Exception{
+        service.showGuestsForPartnerSession("Inactive");
         System.out.println("Ingrese el ID del invitado que desea activar");
         long guestId = Long.parseLong(Utils.getReader().nextLine());
         GuestDto guestDto = new GuestDto();
@@ -124,6 +125,7 @@ public class PartnerController implements ControllerInterface {
     }
     
     private void inactivateGuest() throws Exception {
+        service.showGuestsForPartnerSession("Active");
         System.out.println("Ingrese el ID del invitado que desea desactivar");
         long guestId = guestValidator.validId(Utils.getReader().nextLine());
         
@@ -133,7 +135,6 @@ public class PartnerController implements ControllerInterface {
         service.inactivateGuest(guestDto);
 
         System.out.println("El invitado ha sido desactivado exitosamente.");
-        
     }
     
     private void requestToUnsubscribe() throws Exception{

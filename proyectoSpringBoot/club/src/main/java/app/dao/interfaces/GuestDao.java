@@ -1,7 +1,9 @@
 package app.dao.interfaces;
 
 import app.dto.GuestDto;
-import app.dto.UserDto;
+import app.dto.PartnerDto;
+import java.util.List;
+
 
 public interface GuestDao {
     
@@ -14,4 +16,6 @@ public interface GuestDao {
     public void updateGuest(GuestDto guestDto) throws Exception;
 
     public int countActiveGuestsByPartnerId(GuestDto guestDto) throws Exception;
+    
+    public List<GuestDto> findAllGuestsByPartnerId(PartnerDto partnerDto) throws Exception;
 }
