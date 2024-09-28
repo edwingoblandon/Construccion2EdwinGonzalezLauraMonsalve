@@ -63,11 +63,13 @@ public class PartnerController implements ControllerInterface {
                 this.inactivateGuest();
                 return true;
             case "4":
+                //pass
+                return true;
             case "5":
+                this.VipPromotionRequest();
                 return true;
             case "6":
-                this.requestToUnsubscribe();
-                return false;
+                return this.unsubscribeRequest();
             case "7":{
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
@@ -137,10 +139,27 @@ public class PartnerController implements ControllerInterface {
         System.out.println("El invitado ha sido desactivado exitosamente.");
     }
     
-    private void requestToUnsubscribe() throws Exception{
+    private boolean unsubscribeRequest() throws Exception{
         System.out.println("Estas seguro de eliminar tu usuario?. Para continuar escriba SI, para cancelar persiona ENTER.");
         String opt = Utils.getReader().nextLine().toUpperCase();
-        if (opt.equalsIgnoreCase("SI")) service.requestToUnsubscribe();
+        
+        if (opt.equals("SI")) {
+            service.unsubscribeRequest();
+            System.out.println("Se te ha dado de baja!");
+            return false;
+        }
+        return true;
     }
     
+    private void VipPromotionRequest() throws Exception{
+        System.out.println("Estas seguro de realizar la solicitud a VIP?. Para continuar escriba SI, para cancelar persiona ENTER.");
+        String opt = Utils.getReader().nextLine().toUpperCase();
+        
+        if (opt.equalsIgnoreCase("SI")){
+            service.VipPromotionRequest();
+            System.out.println("Se ha enviado su solicitud para promoverlo a VIP");
+        }
+        
+        
+    }
 }

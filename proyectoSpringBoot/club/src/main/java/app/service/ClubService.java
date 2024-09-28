@@ -98,8 +98,13 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     
     @Override
-    public void requestToUnsubscribe() throws Exception{
+    public void unsubscribeRequest() throws Exception{
         this.unsubscribe();
+    }
+    
+    @Override
+    public void VipPromotionRequest() throws Exception{
+        this.promotionVip();
     }
     
     private PartnerDto getSessionPartner() throws Exception {
@@ -173,7 +178,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
         //Here we will put the logic to validate that there are no invoices
         this.personDao.deletePerson(personDto);
-        System.out.println("Persona eliminada\n EL SOCIO FUE ELIMINADO"); 
+    }
+    
+    private void promotionVip() throws Exception{
+        PartnerDto partnerDto = this.getSessionPartner();
+        partnerDto.setType("in progress");
+        this.partnerDao.updatePartner(partnerDto);
     }
     
     private List<GuestDto> getAllGuestsBySessionPartner() throws Exception {

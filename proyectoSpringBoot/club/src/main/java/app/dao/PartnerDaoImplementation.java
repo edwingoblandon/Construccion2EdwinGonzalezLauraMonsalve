@@ -50,7 +50,8 @@ public class PartnerDaoImplementation implements PartnerDao {
     
     @Override
     public void updatePartner(PartnerDto partnerDto){
-        //pass
+        Partner partner = Helper.parse(partnerDto);
+        partnerRepository.save(partner);
     }
     
     
