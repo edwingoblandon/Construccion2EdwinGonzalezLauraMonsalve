@@ -1,6 +1,7 @@
 package app.controller;
 
 import app.controller.validator.GuestValidator;
+import app.controller.validator.PartnerValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
 import app.dto.GuestDto;
@@ -25,6 +26,8 @@ public class PartnerController implements ControllerInterface {
     private UserValidator userValidator;
     @Autowired
     private GuestValidator guestValidator;
+    @Autowired
+    private PartnerValidator partnerValidator;
     @Autowired
     private PartnerService service;
     private static final String MENU = "Ingrese la el numero de la opcion\n1. Crear invitado \n2. Activar invitado\n3. Desactivar el invitado\n4. Recargar fondos\n5. Solicitar VIP\n6. Solicitar Baja\n7. Cerrar sesion";
@@ -56,14 +59,14 @@ public class PartnerController implements ControllerInterface {
             case "1":
                 this.createGuest();
                 return true;
-            case "2": //activate guest 
+            case "2":
                 this.activateGuest();
                 return true;
-            case "3": //inactivate guest
+            case "3":
                 this.inactivateGuest();
                 return true;
             case "4":
-                //pass
+                this.increaseFunds();
                 return true;
             case "5":
                 this.VipPromotionRequest();
@@ -158,8 +161,13 @@ public class PartnerController implements ControllerInterface {
         if (opt.equalsIgnoreCase("SI")){
             service.VipPromotionRequest();
             System.out.println("Se ha enviado su solicitud para promoverlo a VIP");
-        }
-        
-        
+        } 
+    }
+    
+    private void increaseFunds() throws Exception{
+        System.out.println("Ingrese la cantidad de fondos que desea recargar");
+        double amount = partnerValidator.validAmount(Utils.getReader().nextLine());
+        service.increaseFunds(amount);
+        System.out.println("Se recargo los fondos con exito!");
     }
 }

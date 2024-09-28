@@ -107,6 +107,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         this.promotionVip();
     }
     
+    @Override
+    public void increaseFunds(double amount) throws Exception{
+        this.increaseFundsInDb(amount);
+    }
+    
     private PartnerDto getSessionPartner() throws Exception {
         if (user == null) {
             throw new Exception("No hay usuario en sesion.");
@@ -237,5 +242,25 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         }
         
         return true;
+    }
+    
+    private void increaseFundsInDb(double amount) throws Exception{
+        PartnerDto partnerDto = getSessionPartner();
+        double currentAmount = partnerDto.getAmount();
+        
+        if( (currentAmount + amount <= 1000000) && 
+            (partnerDto.getType().equalsIgnoreCase("Regular") || partnerDto.getType().equalsIgnoreCase("in progress")) ){
+            
+            partnerDto.setAmount(currentAmount + amount);
+            partnerDao.updatePartner(partnerDto);
+            System.out.println("Nuevo saldo disponible: " + partnerDto.getAmount());
+        }
+        else if( (currentAmount + amount <= 5000000) && (partnerDto.getType().equalsIgnoreCase("VIP")) ) {
+            
+            partnerDto.setAmount(currentAmount + amount);
+            partnerDao.updatePartner(partnerDto);
+            System.out.println("Nuevo saldo disponible: " + partnerDto.getAmount());
+        }
+        else throw new Exception("ERROR!: El monto supera el limite de fondos acumulados");
     }
 }

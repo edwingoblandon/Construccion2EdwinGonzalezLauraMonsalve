@@ -9,4 +9,5 @@ public interface PartnerService {
     public void unsubscribeRequest() throws Exception;
     public void VipPromotionRequest() throws Exception;
     public void showGuestsForPartnerSession(String status) throws Exception;
+    public void increaseFunds(double amount) throws Exception;
 }
