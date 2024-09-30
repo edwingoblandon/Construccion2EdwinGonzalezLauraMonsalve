@@ -2,14 +2,19 @@ package app.service;
 
 import java.sql.SQLException;
 import app.dao.interfaces.*;
+import app.dto.DetailInvoiceDto;
 import app.dto.GuestDto;
+import app.dto.InvoiceDto;
 import app.dto.PartnerDto;
 import app.dto.PersonDto;
+import app.dto.ProductDto;
 import app.service.interfaces.AdminService;
 import app.service.interfaces.LoginService;
 import app.service.interfaces.PartnerService;
 import app.dto.UserDto;
 import app.service.interfaces.GuestService;
+import app.service.interfaces.InvoiceService;
+import app.service.interfaces.ProductService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +28,7 @@ import org.springframework.stereotype.Service;
 @Setter
 @NoArgsConstructor
 @Service
-public class ClubService implements AdminService, LoginService , PartnerService, GuestService{
+public class ClubService implements AdminService, LoginService , PartnerService, GuestService, ProductService, InvoiceService{
     @Autowired
     private PersonDao personDao;
     @Autowired
@@ -36,6 +41,8 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private DetailInvoiceDao detailInvoiceDao;
     @Autowired
     private InvoiceDao invoiceDao;
+    @Autowired
+    private ProductDao productDao;
     
     public static UserDto user;
  
@@ -45,6 +52,26 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         this.createPartnerInDb(partnerDto);
     }
     
+    @Override
+    public void createInvoice(InvoiceDto invoiceDto, DetailInvoiceDto detailInvoiceDto) throws Exception {
+        PartnerDto partnerDto = null;
+        try {
+            partnerDto = getSessionPartner();
+        } catch (Exception e) {}
+        
+        invoiceDto.setPartnerId(partnerDto == null ? getSessionGuest().getPartnerId() : partnerDto);
+        
+        invoiceDto.setUserId(user);
+        this.invoiceDao.createInvoice(invoiceDto); 
+        
+        try {
+            this.detailInvoiceDao.createDetailInvoice(detailInvoiceDto);
+        } catch(SQLException e){
+            System.out.println("Ocurrio un error: " + e.getMessage());
+            this.invoiceDao.deleteInvoice(invoiceDto);
+        } 
+    }
+
     @Override
     public void createGuest(GuestDto guestDto) throws Exception{
         this.createGuestInDb(guestDto);
@@ -66,8 +93,8 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public void showGuestsForPartnerSession(String status) throws Exception{
-        this.showGuestsForPartner(status);
+    public List<GuestDto> getGuestsForPartnerSession(String status) throws Exception{
+        return this.getFilteredGuests(status);
     }
 
     @Override
@@ -83,6 +110,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     @Override
     public void increaseFunds(double amount) throws Exception{
         this.increaseFundsInDb(amount);
+    }
+    
+    @Override
+    public List<ProductDto> getAllProducts() throws Exception{
+        return productDao.findAllProducts();
     }
     
     @Override
@@ -106,24 +138,23 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     private PartnerDto getSessionPartner() throws Exception {
-        if (user == null) {
-            throw new Exception("No hay usuario en sesion.");
-        }
+        
+        if (user == null) throw new Exception("No hay usuario en sesion.");
+        
         PartnerDto partnerDto = partnerDao.findByUserId(user);
-        if (partnerDto == null) {
-            throw new Exception("No se encontro el socio asociado al usuario en sesion");
-        }
+        
+        if (partnerDto == null) throw new Exception("No se encontro el socio asociado al usuario en sesion");
+            
         return partnerDto;
     }
     
     private GuestDto getSessionGuest() throws Exception {
-        if (user == null) {
-            throw new Exception("No hay usuario en sesion.");
-        }
+        if (user == null) throw new Exception("No hay usuario en sesion.");
+        
         GuestDto guestDto = guestDao.findByUserId(user);
-        if (guestDto == null) {
-            throw new Exception("No se encontro el socio asociado al usuario en sesion");
-        }
+        
+        if (guestDto == null) throw new Exception("No se encontro el invitado asociado al usuario en sesion");
+        
         return guestDto;
     }
     
@@ -216,13 +247,26 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         partnerDto.setType("regular");
         partnerDto.setCreationDate(LocalDateTime.now());
 
+        List<InvoiceDto> invoices = invoiceDao.findAllByUserId(guestDto.getUserId());
+        if(!invoices.isEmpty()){
+            for(InvoiceDto invoice: invoices){
+                if(invoice.getStatus().equalsIgnoreCase("Pending")) throw new Exception("Tu socio debe pagar todas tus facturas antes de promoverte a socio\nFactura id: " + invoice.getId() + " estado: " + invoice.getStatus());
+            }
+        }
+        
         partnerDao.createPartner(partnerDto);
     }
     
     private void unsubscribe() throws Exception{
         PartnerDto partnerDto = this.getSessionPartner();
         PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
-        //Here we will put the logic to validate that there are no invoices
+        
+        List<InvoiceDto> invoices = invoiceDao.findAllByPartnerId(partnerDto);
+        if(!invoices.isEmpty()){
+            for(InvoiceDto invoice: invoices){
+                if(invoice.getStatus().equalsIgnoreCase("Pending")) throw new Exception("Debes pagar todas tus facturas antes de darte de baja\nFactura id: " + invoice.getId() + " estado: " + invoice.getStatus());
+            }
+        }
         this.personDao.deletePerson(personDto);
     }
     
@@ -237,12 +281,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
 
         List<GuestDto> allGuests = guestDao.findAllGuestsByPartnerId(partnerDto);
 
-        if (allGuests.isEmpty()) throw new Exception("No hay invitados asociados al socio en sesion.");
+        if (allGuests.isEmpty()) throw new Exception("No hay invitados asociados al socio en sesion");
 
         return allGuests;
     }
     
-    private void showGuestsForPartner(String filter) throws Exception {
+    private List<GuestDto> getFilteredGuests(String filter) throws Exception {
         List<GuestDto> allGuests = getAllGuestsBySessionPartner();
 
         List<GuestDto> activeGuests = allGuests.stream()
@@ -253,26 +297,14 @@ public class ClubService implements AdminService, LoginService , PartnerService,
             .filter(guest -> guest.getStatus().equalsIgnoreCase("Inactive"))
             .collect(Collectors.toList());
         
-        if(filter.equalsIgnoreCase("Active")){
+        if(filter.equalsIgnoreCase("ACTIVE")){
             if (activeGuests.isEmpty()) throw new Exception("No hay invitados activos asociados al socio en sesion");
-            System.out.println("\nInvitados activos del socio en sesión:");
-            for (GuestDto guestDto : activeGuests) {
-                System.out.println("ID: " + guestDto.getId());
-                System.out.println("Nombre: " + guestDto.getUserId().getPersonId().getName());
-                System.out.println("-------------------------------");
-            }
+            return activeGuests;
         }
         else{
             if (inactiveGuests.isEmpty()) throw new Exception("No hay invitados inactivos asociados al socio en sesion");
-            System.out.println("\nInvitados inactivos del socio en sesión:");
-            for (GuestDto guestDto : inactiveGuests) {
-                System.out.println("ID: " + guestDto.getId());
-                System.out.println("Nombre: " + guestDto.getUserId().getPersonId().getName());
-                System.out.println("-------------------------------");
-            }
+            return inactiveGuests;
         }
-
-
     }
     
     private boolean isValidGuestByPartner(GuestDto guestDto, PartnerDto partnerDto) throws Exception {
@@ -288,15 +320,17 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private void increaseFundsInDb(double amount) throws Exception{
         PartnerDto partnerDto = getSessionPartner();
         double currentAmount = partnerDto.getAmount();
-        
+// implement the logic of paying bills with the recharge -----------------------------------------------------------------------------------------------------------------------------
         if( (currentAmount + amount <= 1000000) && 
-            (partnerDto.getType().equalsIgnoreCase("Regular") || partnerDto.getType().equalsIgnoreCase("in progress")) ){
+            (partnerDto.getType().equalsIgnoreCase("Regular") || partnerDto.getType().equalsIgnoreCase("in progress")) &&
+                (currentAmount + amount > 0) ) {
             
             partnerDto.setAmount(currentAmount + amount);
             partnerDao.updatePartner(partnerDto);
             System.out.println("Nuevo saldo disponible: " + partnerDto.getAmount());
         }
-        else if( (currentAmount + amount <= 5000000) && (partnerDto.getType().equalsIgnoreCase("VIP")) ) {
+        else if( (currentAmount + amount <= 5000000) && (partnerDto.getType().equalsIgnoreCase("VIP")) &&
+                (currentAmount + amount > 0) ) {
             
             partnerDto.setAmount(currentAmount + amount);
             partnerDao.updatePartner(partnerDto);

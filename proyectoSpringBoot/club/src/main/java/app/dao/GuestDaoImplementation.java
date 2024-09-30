@@ -53,7 +53,7 @@ public class GuestDaoImplementation implements GuestDao {
     public GuestDto findByUserId(UserDto userDto) throws Exception {
         Guest guest = guestRepository.findByUserId(userDto.getId());
     
-        if(guest == null) throw new Exception("No se encontro un socio asociado al invitado");
+        if(guest == null) throw new Exception("No se el usuario del invitado");
         
         return Helper.parse(guest);
        

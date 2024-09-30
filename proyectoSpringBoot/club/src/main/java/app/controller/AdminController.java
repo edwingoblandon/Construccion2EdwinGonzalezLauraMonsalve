@@ -29,7 +29,7 @@ public class AdminController implements ControllerInterface {
     private PartnerValidator partnerValidator;
     @Autowired
     private AdminService service;
-    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver facturas\n3. Promover a VIP\n4. Cerrar sesion";
+    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver factura club\n3. Ver facturas socios\n4. Ver facturas invitados\n5. Promover a VIP\n6. Cerrar sesion";
 
     @Override
     public void session() throws Exception {
@@ -47,9 +47,11 @@ public class AdminController implements ControllerInterface {
             }
             case "2":
             case "3":
+            case "4":
+            case "5":
                 return true;
                 //pass
-            case "4": {
+            case "6": {
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
             }

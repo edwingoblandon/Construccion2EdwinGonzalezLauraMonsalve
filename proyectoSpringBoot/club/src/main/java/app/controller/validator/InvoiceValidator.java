@@ -11,11 +11,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class InvoiceValidator extends CommonsValidator {
     
-    public void validId(String id) throws Exception{
-        super.isValidLong("El id de la factura ", id);
+    public Long validId(String id) throws Exception{
+        return super.isValidLong("El id de la factura ", id);
     }
     
-    public void validTotalAmount(String value) throws Exception{
-        super.isValidDouble("El monto total ", value);
+    public double validTotalAmount(String value) throws Exception{
+        return super.isValidDouble("El monto total ", value);
+    }
+    
+    public int validStatus(String status) throws Exception{
+        return super.isValidInteger("La opcion de pago ", status);
     }
 }
