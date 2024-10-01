@@ -98,6 +98,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
 
     @Override
+    public List<PartnerDto> getAllPartners(String type) throws Exception{
+        return this.getFilteredPartners(type);
+    }
+    
+    @Override
     public void unsubscribeRequest() throws Exception{
         this.unsubscribe();
     }
@@ -105,6 +110,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     @Override
     public void vipPromotionRequest() throws Exception{
         this.promotionVip();
+    }
+    
+    @Override
+    public void promoteToVip(PartnerDto partnerDto) throws Exception{
+        this.promotionToVip(partnerDto);
     }
     
     @Override
@@ -133,6 +143,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
+    public int getNumPaidInvoices(PartnerDto partnerDto) throws Exception{
+        return this.getNumPaidInvoicesInDb(partnerDto);
+    }
+    
+    @Override
     public List<DetailInvoiceDto> getAllDetailInvoiceByPartner() throws Exception{
         return detailInvoiceDao.findAllByPartnerId(getSessionPartner());
     }
@@ -146,8 +161,17 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         if (!userDto.getPassword().equals(validateDto.getPassword())) throw new Exception("Usuario o contraseña incorrecto");
         
         userDto.setRole(validateDto.getRole());
+        
+        
+        
         userDto.setPersonId(validateDto.getPersonId());
         userDto.setId(validateDto.getId());
+        
+        if(userDto.getRole().equalsIgnoreCase("guest")){
+            GuestDto guestDto = guestDao.findByUserId(userDto);
+            if(guestDto.getStatus().equalsIgnoreCase("Inactive")) throw new Exception("ERROR! Tu usuario no se encuentra activo, pide a tu socio que te active el usuario");
+        }
+        
         user = userDto;
     }
         
@@ -205,12 +229,6 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     private void createPartnerInDb(PartnerDto partnerDto) throws Exception {
         this.createUser(partnerDto.getUserId());
-        
-        //¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ Apply in promotions of REGULAR to VIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (this.partnerDao.countPartnersVip() >= 5 ) {
-            this.personDao.deletePerson(partnerDto.getUserId().getPersonId());
-            throw new Exception("Ya existen 5 socios VIP");
-        }//pass
 
         try {
             this.partnerDao.createPartner(partnerDto);
@@ -255,11 +273,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         GuestDto guestDto = this.getSessionGuest();
         guestDto = guestDao.findById(guestDto);
         guestDto.setStatus("CONVERTED_TO_PARTNER");
-        guestDao.updateGuest(guestDto);
+        
    
         UserDto userDto = userDao.findById(guestDto.getUserId());
         userDto.setRole("partner");
-        userDao.updateUser(userDto);
+        
         
         PartnerDto partnerDto = new PartnerDto();
         partnerDto.setUserId(user);
@@ -268,12 +286,16 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         partnerDto.setCreationDate(LocalDateTime.now());
 
         List<InvoiceDto> invoices = invoiceDao.findAllByUserId(guestDto.getUserId());
+        boolean test = false;
         if(!invoices.isEmpty()){
             for(InvoiceDto invoice: invoices){
-                if(invoice.getStatus().equalsIgnoreCase("Pending")) throw new Exception("Tu socio debe pagar todas tus facturas antes de promoverte a socio\nFactura id: " + invoice.getId() + " estado: " + invoice.getStatus());
+                if(invoice.getStatus().equalsIgnoreCase("Pending")) test = true;
             }
         }
         
+        if(test) throw new Exception("Tu socio debe pagar todas tus facturas antes de promoverte a socio ");
+        guestDao.updateGuest(guestDto);
+        userDao.updateUser(userDto);
         partnerDao.createPartner(partnerDto);
     }
     
@@ -292,6 +314,9 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     private void promotionVip() throws Exception{
         PartnerDto partnerDto = this.getSessionPartner();
+        
+        if(partnerDto.getType().equalsIgnoreCase("in progress")) throw new Exception("ERROR! Tu solicitud ya se encuentra en proces");
+        
         partnerDto.setType("in progress");
         this.partnerDao.updatePartner(partnerDto);
     }
@@ -305,6 +330,38 @@ public class ClubService implements AdminService, LoginService , PartnerService,
 
         return allGuests;
     }
+    
+    private List<PartnerDto> getFilteredPartners(String filter) throws Exception{
+        List<PartnerDto> allPartners = partnerDao.findAllPartners();
+        
+        List<PartnerDto> candidates = allPartners.stream()
+            .filter(candidate -> candidate.getType().equalsIgnoreCase("in progress")).collect(Collectors.toList());
+        
+        List<PartnerDto> regularPartners = allPartners.stream()
+            .filter(regular -> regular.getType().equalsIgnoreCase("regular")).collect(Collectors.toList());
+        
+        List<PartnerDto> vips = allPartners.stream()
+            .filter(vip -> vip.getType().equalsIgnoreCase("vip")).collect(Collectors.toList());
+        
+        
+        if(filter.equalsIgnoreCase("in progress")){
+            if(candidates.isEmpty()) throw new Exception("No se encontraron socios con solicitud a vip");
+            return candidates;  
+        }
+        
+        else if(filter.equalsIgnoreCase("regular")){
+            if(regularPartners.isEmpty()) throw new Exception("No se encontraron socios regulares activos");
+            return regularPartners;
+        }
+
+        else if(filter.equalsIgnoreCase("vip")){
+            return vips;
+        }
+        else{
+            throw new Exception("Error! No se encontro socios con ese filtro");
+        }
+    }
+    
     
     private List<GuestDto> getFilteredGuests(String filter) throws Exception {
         List<GuestDto> allGuests = getAllGuestsBySessionPartner();
@@ -363,12 +420,16 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     
     public void showPendingInvoices() throws Exception{
         List<InvoiceDto> pendingInvoices = getAllPendingInvoices();
-        System.out.println("***Facturas pendientes***");
-        for(InvoiceDto invoice : pendingInvoices){
-            System.out.println("Id: " + invoice.getId() + " Estado: pendiente Total $" + invoice.getTotalAmount());
+        if(!pendingInvoices.isEmpty()){
+            System.out.println("***Facturas pendientes***");
+            for(InvoiceDto invoice : pendingInvoices){
+                System.out.println("Id: " + invoice.getId() + " Estado: pendiente Total $" + invoice.getTotalAmount());
+            }
+            System.out.println("\n");
         }
-        System.out.println("\n");
+        
     }
+    
     private void payOutstandingInvoices(PartnerDto partnerDto) throws Exception{
         List<InvoiceDto> pendingInvoices = getAllPendingInvoices();
         
@@ -389,5 +450,26 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         }
         
         partnerDto.setAmount(availableFunds);
+    }
+    
+    private int getNumPaidInvoicesInDb(PartnerDto partnerDto) throws Exception{
+        List<InvoiceDto> invoices = invoiceDao.findAllByPartnerId(partnerDto);
+        
+        int cantPaidInvoices = 0;
+        for(InvoiceDto invoice : invoices){
+            if(invoice.getStatus().equalsIgnoreCase("Paid")) cantPaidInvoices += 1;
+        }
+        
+        return cantPaidInvoices;
+    }
+            
+    private void promotionToVip(PartnerDto partnerDto) throws Exception{
+        partnerDto = partnerDao.findById(partnerDto);
+        
+        if (this.partnerDao.countPartnersVip() >= 5 ) throw new Exception("ERROR! Ya existen 5 socios VIP");
+        
+        partnerDto.setType("VIP");
+        partnerDao.updatePartner(partnerDto);
+        
     }
 }

@@ -161,7 +161,7 @@ public class PartnerController implements ControllerInterface {
         
         System.out.println("\nIngrese el ID del producto que desea");
         Long id = invoiceValidator.validId(Utils.getReader().nextLine());
-        if(id < 0 || id >= numProducts) throw new Exception("Ingrese una opcion valida");
+        if(id < 0 || id > numProducts) throw new Exception("Ingreso una opcion invalida");
         ProductDto productDto = products.get(id.intValue() - 1);
         
         System.out.println("Ingrese la cantidad de: " + productDto.getName() + " que desea: " );

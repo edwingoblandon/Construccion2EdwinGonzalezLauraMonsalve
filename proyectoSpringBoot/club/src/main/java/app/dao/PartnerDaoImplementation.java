@@ -7,8 +7,10 @@ import app.dto.PartnerDto;
 import app.dto.UserDto;
 import app.helpers.Helper;
 import app.model.Partner;
+import java.util.List;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -68,5 +70,14 @@ public class PartnerDaoImplementation implements PartnerDao {
         
         return Helper.parse(partner);
        
+    }
+    
+    @Override
+    public List<PartnerDto> findAllPartners() throws Exception{
+        List<Partner> products = partnerRepository.findAll();
+
+        if (products.isEmpty()) throw new Exception("No se encontraron socios disponibles");
+
+        return products.stream().map(Helper::parse).collect(Collectors.toList());
     }
 } 
