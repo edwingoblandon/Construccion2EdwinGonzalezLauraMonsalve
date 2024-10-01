@@ -232,7 +232,7 @@ public class PartnerController implements ControllerInterface {
     }
     
     private void showAllInvoices() throws Exception {
-        List <DetailInvoiceDto> invoices = this.service.getAllDetailInvoice();
+        List <DetailInvoiceDto> invoices = this.service.getAllDetailInvoiceByPartner();
         System.out.println("\n***Facturas***");
         for (DetailInvoiceDto invoice : invoices) {
             System.out.println("ID: " + invoice.getInvoiceId().getId());
@@ -241,6 +241,8 @@ public class PartnerController implements ControllerInterface {
             System.out.println("Estado: " + status);
             
             System.out.println("Persona que realizo el consumo: " + invoice.getInvoiceId().getUserId().getPersonId().getName());
+            String type = invoice.getInvoiceId().getUserId().getRole().equalsIgnoreCase("Partner") ? "Socio" : "Invitado";
+            System.out.println("Tipo de persona que realizo el consumo: " + type);
             System.out.println("Fecha de la factura: " + invoice.getInvoiceId().getDateOfCreation());
             System.out.println("Id del item: " + invoice.getItem());
             System.out.println("Descripcion del producto: " + invoice.getDescription());

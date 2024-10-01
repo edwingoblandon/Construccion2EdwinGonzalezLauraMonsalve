@@ -8,7 +8,6 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import app.dao.repository.DetailInvoiceRepository;
 import app.dto.DetailInvoiceDto;
-import app.dto.InvoiceDto;
 import app.dto.PartnerDto;
 import app.helpers.Helper;
 import app.model.DetailInvoice;
@@ -60,6 +59,15 @@ public class DetailInvoiceDaoImplementation implements DetailInvoiceDao {
         
         if(detailInvoices.isEmpty()) throw new Exception("No se encontro facturas asociadas al socio en sesion");
         
+        return detailInvoices.stream().map(Helper::parse).collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<DetailInvoiceDto> findAllDetailInvoces() throws Exception {
+        List<DetailInvoice> detailInvoices = detailInvoiceRepository.findAll();
+
+        if(detailInvoices.isEmpty()) throw new Exception("No se encontraron detalles de facturas");
+
         return detailInvoices.stream().map(Helper::parse).collect(Collectors.toList());
     }
 }

@@ -10,4 +10,5 @@ public interface DetailInvoiceDao {
     public DetailInvoiceDto findById(DetailInvoiceDto detailInvoiceDto) throws Exception;
     public void updateDetailInvoice(DetailInvoiceDto detailInvoiceDto) throws Exception;
     public List<DetailInvoiceDto> findAllByPartnerId(PartnerDto partnerDto) throws Exception;
+    public List<DetailInvoiceDto> findAllDetailInvoces() throws Exception;
 }

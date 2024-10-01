@@ -13,7 +13,7 @@ public interface PartnerService {
     public void vipPromotionRequest() throws Exception;
     public List<GuestDto> getGuestsForPartnerSession(String status) throws Exception;
     public void increaseFunds(double amount) throws Exception;
-    public List<InvoiceDto> getAllInvoices() throws Exception;
-    public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception;
+    public List<InvoiceDto> getAllInvoicesByPartner() throws Exception;
+    public List<DetailInvoiceDto> getAllDetailInvoiceByPartner() throws Exception;
     public List<InvoiceDto> getAllPendingInvoices() throws Exception;
 }

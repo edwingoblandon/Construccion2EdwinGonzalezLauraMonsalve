@@ -4,12 +4,14 @@ package app.controller;
 import app.controller.validator.PartnerValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
+import app.dto.DetailInvoiceDto;
 import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
 import app.service.ClubService;
 import app.service.interfaces.AdminService;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,7 +31,7 @@ public class AdminController implements ControllerInterface {
     private PartnerValidator partnerValidator;
     @Autowired
     private AdminService service;
-    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver factura club\n3. Ver facturas socios\n4. Ver facturas invitados\n5. Promover a VIP\n6. Cerrar sesion";
+    private static final String MENU = "Ingrese la el numero de la opcion \n1. Crear socio\n2. Ver factura club\n3. Promover a VIP\n4. Cerrar sesion";
 
     @Override
     public void session() throws Exception {
@@ -46,12 +48,11 @@ public class AdminController implements ControllerInterface {
                 return true;
             }
             case "2":
+                this.showAllInvoices();
             case "3":
-            case "4":
-            case "5":
                 return true;
                 //pass
-            case "6": {
+            case "4": {
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
             }
@@ -113,6 +114,29 @@ public class AdminController implements ControllerInterface {
 
         this.service.createPartner(partnerDto);
         System.out.println("Se ha creado el usuario exitosamente");
+    }
+    
+    private void showAllInvoices() throws Exception {
+        List <DetailInvoiceDto> invoices = this.service.getAllDetailInvoices();
+        System.out.println("\n***Facturas***");
+        for (DetailInvoiceDto invoice : invoices) {
+            System.out.println("ID: " + invoice.getInvoiceId().getId());
+            
+            String status = invoice.getInvoiceId().getStatus().equalsIgnoreCase("Pending") ? "Pendiente" : "Pagada";
+            System.out.println("Estado: " + status);
+            
+            System.out.println("Persona que realizo el consumo: " + invoice.getInvoiceId().getUserId().getPersonId().getName());
+            String type = invoice.getInvoiceId().getUserId().getRole().equalsIgnoreCase("Partner") ? "Socio" : "Invitado";
+            
+            System.out.println("Tipo de persona que realizo el consumo: " + type);
+            System.out.println("Fecha de la factura: " + invoice.getInvoiceId().getDateOfCreation());
+            System.out.println("Id del item: " + invoice.getItem());
+            System.out.println("Descripcion del producto: " + invoice.getDescription());
+            System.out.println("Precio por unidad: " + invoice.getAmount());
+            System.out.println("Unidades compradas: " + invoice.getInvoiceId().getTotalAmount()/invoice.getAmount());
+            System.out.println("Monto total: " + invoice.getInvoiceId().getTotalAmount());
+            System.out.println("-------------------------------");
+        }
     }
  
 }

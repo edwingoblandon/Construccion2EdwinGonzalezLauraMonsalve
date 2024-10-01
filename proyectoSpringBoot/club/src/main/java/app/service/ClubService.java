@@ -118,7 +118,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public List<InvoiceDto> getAllInvoices() throws Exception{
+    public List<DetailInvoiceDto> getAllDetailInvoices() throws Exception{
+        return detailInvoiceDao.findAllDetailInvoces();
+    }
+    
+    @Override
+    public List<InvoiceDto> getAllInvoicesByPartner() throws Exception{
         return invoiceDao.findAllByPartnerId(getSessionPartner());
     }
     
@@ -128,7 +133,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception{
+    public List<DetailInvoiceDto> getAllDetailInvoiceByPartner() throws Exception{
         return detailInvoiceDao.findAllByPartnerId(getSessionPartner());
     }
     
