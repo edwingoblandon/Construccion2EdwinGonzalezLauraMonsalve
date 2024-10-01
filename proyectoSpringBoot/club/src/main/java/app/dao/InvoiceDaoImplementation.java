@@ -73,4 +73,10 @@ public class InvoiceDaoImplementation implements InvoiceDao{
         
         return invoices.stream().map(Helper::parse).collect(Collectors.toList());
     }
+    
+    @Override
+    public List<InvoiceDto> findPendingInvoicesByPartnerId(PartnerDto partnerDto) throws Exception {
+        List<Invoice> pendingInvoices = invoiceRepository.findPendingInvoicesByPartnerId(partnerDto.getId());
+        return pendingInvoices.stream().map(Helper::parse).collect(Collectors.toList());
+    }
 }

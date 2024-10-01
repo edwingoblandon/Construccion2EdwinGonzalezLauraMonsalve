@@ -15,4 +15,5 @@ public interface PartnerService {
     public void increaseFunds(double amount) throws Exception;
     public List<InvoiceDto> getAllInvoices() throws Exception;
     public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception;
+    public List<InvoiceDto> getAllPendingInvoices() throws Exception;
 }

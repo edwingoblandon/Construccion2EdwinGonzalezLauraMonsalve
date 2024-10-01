@@ -123,6 +123,11 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
+    public List<InvoiceDto> getAllPendingInvoices() throws Exception{
+        return invoiceDao.findPendingInvoicesByPartnerId(getSessionPartner());
+    }
+    
+    @Override
     public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception{
         return detailInvoiceDao.findAllByPartnerId(getSessionPartner());
     }
@@ -330,12 +335,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private void increaseFundsInDb(double amount) throws Exception{
         PartnerDto partnerDto = getSessionPartner();
         double currentAmount = partnerDto.getAmount();
-// implement the logic of paying bills with the recharge -----------------------------------------------------------------------------------------------------------------------------
         if( (currentAmount + amount <= 1000000) && 
             (partnerDto.getType().equalsIgnoreCase("Regular") || partnerDto.getType().equalsIgnoreCase("in progress")) &&
                 (currentAmount + amount > 0) ) {
             
             partnerDto.setAmount(currentAmount + amount);
+            payOutstandingInvoices(partnerDto);
             partnerDao.updatePartner(partnerDto);
             System.out.println("Nuevo saldo disponible: " + partnerDto.getAmount());
         }
@@ -343,9 +348,41 @@ public class ClubService implements AdminService, LoginService , PartnerService,
                 (currentAmount + amount > 0) ) {
             
             partnerDto.setAmount(currentAmount + amount);
+            payOutstandingInvoices(partnerDto);
             partnerDao.updatePartner(partnerDto);
+            System.out.println("Se recargo los fondos con exito!");
             System.out.println("Nuevo saldo disponible: " + partnerDto.getAmount());
         }
         else throw new Exception("ERROR!: El monto supera el limite de fondos acumulados");
+    }
+    
+    public void showPendingInvoices() throws Exception{
+        List<InvoiceDto> pendingInvoices = getAllPendingInvoices();
+        System.out.println("***Facturas pendientes***");
+        for(InvoiceDto invoice : pendingInvoices){
+            System.out.println("Id: " + invoice.getId() + " Estado: pendiente Total $" + invoice.getTotalAmount());
+        }
+        System.out.println("\n");
+    }
+    private void payOutstandingInvoices(PartnerDto partnerDto) throws Exception{
+        List<InvoiceDto> pendingInvoices = getAllPendingInvoices();
+        
+        double availableFunds = partnerDto.getAmount();
+        showPendingInvoices();
+        for (InvoiceDto invoice : pendingInvoices) {
+            double amountInvoice = invoice.getTotalAmount();
+
+            if (availableFunds >= amountInvoice) {
+                availableFunds -= amountInvoice;
+                System.out.println("Se pago la factora: ID: " + invoice.getId() + " Fecha: " + invoice.getDateOfCreation() + " Valor total pagado: $" + invoice.getTotalAmount());
+                invoice.setStatus("Paid");
+                invoiceDao.updateInvoice(invoice);
+            } else {
+                
+                break;
+            }
+        }
+        
+        partnerDto.setAmount(availableFunds);
     }
 }

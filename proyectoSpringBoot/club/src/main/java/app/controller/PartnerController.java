@@ -277,6 +277,6 @@ public class PartnerController implements ControllerInterface {
         System.out.println("Ingrese la cantidad de fondos que desea recargar");
         double amount = partnerValidator.validAmount(Utils.getReader().nextLine());
         service.increaseFunds(amount);
-        System.out.println("Se recargo los fondos con exito!");
+        
     }
 }

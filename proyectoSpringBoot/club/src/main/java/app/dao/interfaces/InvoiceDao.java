@@ -13,4 +13,5 @@ public interface InvoiceDao {
     public void deleteInvoice(InvoiceDto invoiceDto) throws Exception;
     public List<InvoiceDto> findAllByPartnerId(PartnerDto partnerDto) throws Exception;
     public List<InvoiceDto> findAllByUserId(UserDto userDto) throws Exception;
+    public List<InvoiceDto> findPendingInvoicesByPartnerId(PartnerDto partnerDto) throws Exception;
 }
