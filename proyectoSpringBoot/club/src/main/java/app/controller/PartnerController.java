@@ -49,7 +49,7 @@ public class PartnerController implements ControllerInterface {
     @Autowired
     private InvoiceService invoiceService;
     
-    private static final String MENU = "Ingrese la el numero de la opcion\n1. Hacer consumos\n2. Crear invitado \n3. Activar invitado\n4. Desactivar invitado\n5. Recargar fondos\n6. Solicitar VIP\n7. Solicitar Baja\n8. Cerrar sesion";
+    private static final String MENU = "Ingrese la el numero de la opcion\n1. Hacer consumos\n2. Crear invitado \n3. Activar invitado\n4. Desactivar invitado\n5. Recargar fondos\n6. Solicitar VIP\n7. Solicitar Baja\n8. Ver facturas\n9. Cerrar sesion";
     
     
     @Override
@@ -95,7 +95,10 @@ public class PartnerController implements ControllerInterface {
                 return true;
             case "7":
                 return this.unsubscribeRequest();
-            case "8":{
+            case "8":
+                this.showAllInvoices();
+                return true;
+            case "9":{
                 System.out.println("Se ha cerrado sesion con exito.");
                 return false;
             } 
@@ -224,6 +227,26 @@ public class PartnerController implements ControllerInterface {
         for (GuestDto guest : guests) {
             System.out.println("ID: " + guest.getId());
             System.out.println("Nombre: " + guest.getUserId().getPersonId().getName());
+            System.out.println("-------------------------------");
+        }
+    }
+    
+    private void showAllInvoices() throws Exception {
+        List <DetailInvoiceDto> invoices = this.service.getAllDetailInvoice();
+        System.out.println("\n***Facturas***");
+        for (DetailInvoiceDto invoice : invoices) {
+            System.out.println("ID: " + invoice.getInvoiceId().getId());
+            
+            String status = invoice.getInvoiceId().getStatus().equalsIgnoreCase("Pending") ? "Pendiente" : "Pagada";
+            System.out.println("Estado: " + status);
+            
+            System.out.println("Persona que realizo el consumo: " + invoice.getInvoiceId().getUserId().getPersonId().getName());
+            System.out.println("Fecha de la factura: " + invoice.getInvoiceId().getDateOfCreation());
+            System.out.println("Id del item: " + invoice.getItem());
+            System.out.println("Descripcion del producto: " + invoice.getDescription());
+            System.out.println("Precio por unidad: " + invoice.getAmount());
+            System.out.println("Unidades compradas: " + invoice.getInvoiceId().getTotalAmount()/invoice.getAmount());
+            System.out.println("Monto total: " + invoice.getInvoiceId().getTotalAmount());
             System.out.println("-------------------------------");
         }
     }

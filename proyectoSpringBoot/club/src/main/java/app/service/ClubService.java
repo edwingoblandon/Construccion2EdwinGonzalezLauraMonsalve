@@ -118,6 +118,16 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
+    public List<InvoiceDto> getAllInvoices() throws Exception{
+        return invoiceDao.findAllByPartnerId(getSessionPartner());
+    }
+    
+    @Override
+    public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception{
+        return detailInvoiceDao.findAllByPartnerId(getSessionPartner());
+    }
+    
+    @Override
     public void login(UserDto userDto) throws Exception {
         UserDto validateDto = userDao.findByUserName(userDto);
         

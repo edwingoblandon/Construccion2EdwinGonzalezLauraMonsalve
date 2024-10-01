@@ -1,6 +1,8 @@
 package app.service.interfaces;
 
+import app.dto.DetailInvoiceDto;
 import app.dto.GuestDto;
+import app.dto.InvoiceDto;
 import java.util.List;
 
 public interface PartnerService {
@@ -11,4 +13,6 @@ public interface PartnerService {
     public void vipPromotionRequest() throws Exception;
     public List<GuestDto> getGuestsForPartnerSession(String status) throws Exception;
     public void increaseFunds(double amount) throws Exception;
+    public List<InvoiceDto> getAllInvoices() throws Exception;
+    public List<DetailInvoiceDto> getAllDetailInvoice() throws Exception;
 }
