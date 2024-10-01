@@ -7,12 +7,14 @@ import app.dto.InvoiceDto;
 import app.dto.PersonDto;
 import app.dto.UserDto;
 import app.dto.PartnerDto;
+import app.dto.ProductDto;
 import app.model.DetailInvoice;
 import app.model.Guest;
 import app.model.Invoice;
 import app.model.Person;
 import app.model.User;
 import app.model.Partner;
+import app.model.Product;
        
 public abstract class Helper {
     
@@ -135,4 +137,21 @@ public abstract class Helper {
         return detailInvoice;
     }
 
+    public static ProductDto parse(Product product){
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        return productDto;
+    }
+    
+    public static Product parse(ProductDto productDto){
+        Product product = new Product();
+        product.setId(productDto.getId());
+        product.setName(productDto.getName());
+        product.setDescription(productDto.getDescription());
+        product.setPrice(productDto.getPrice());
+        return product;
+    }
 }
