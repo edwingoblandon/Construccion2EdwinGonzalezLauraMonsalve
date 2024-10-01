@@ -2,6 +2,7 @@ package app.dao.interfaces;
 
 import app.dto.PartnerDto;
 import app.dto.UserDto;
+import java.util.List;
 
 public interface PartnerDao {
     
@@ -15,4 +16,5 @@ public interface PartnerDao {
     
     public long countPartnersVip() throws Exception;
     public PartnerDto findByUserId( UserDto userDto ) throws Exception; 
+    public List<PartnerDto> findAllPartners() throws Exception;
 }

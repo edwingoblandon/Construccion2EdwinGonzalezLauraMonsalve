@@ -1,4 +1,3 @@
-
 package app.controller.validator;
 
 import lombok.Getter;
@@ -10,9 +9,9 @@ import org.springframework.stereotype.Component;
 @Setter
 @NoArgsConstructor
 @Component
-public class PartnerValidator extends CommonsValidator{
+public class AdminValidator extends CommonsValidator{
     
-    public double validAmount(String amount) throws Exception{
-        return super.isValidDouble("El monto del socio", amount);
+    public Long validId(String id) throws Exception{
+        return super.isValidLong("El id del socio ", id);
     }
 }
