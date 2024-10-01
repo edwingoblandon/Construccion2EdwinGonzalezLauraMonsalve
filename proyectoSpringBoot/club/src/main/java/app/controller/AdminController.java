@@ -1,4 +1,3 @@
-
 package app.controller;
 
 import app.controller.validator.AdminValidator;
@@ -200,3 +199,4 @@ public class AdminController implements ControllerInterface {
         return null;
     }
 }
+
