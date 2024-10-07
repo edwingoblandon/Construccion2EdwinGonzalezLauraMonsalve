@@ -90,8 +90,18 @@ public class GuestDaoImplementation implements GuestDao {
     }
     
     @Override
-    public void updateGuest(GuestDto guestDto){
-        //pass
+    public void updateGuest(GuestDto guestDto) throws Exception {
+        String query = "UPDATE GUEST SET USERID = ?, PARTNERID = ?, STATUS = ? WHERE ID = ?";
+        PreparedStatement preparedStatement = MYSQLConnection.getConnection().prepareStatement(query);
+
+        preparedStatement.setLong(1, guestDto.getUserId().getId());
+        preparedStatement.setLong(2, guestDto.getPartnerId().getId());
+        preparedStatement.setString(3, guestDto.getStatus());
+        preparedStatement.setLong(4, guestDto.getId());
+
+        preparedStatement.executeUpdate();
+
+        preparedStatement.close();
     }
     
     
