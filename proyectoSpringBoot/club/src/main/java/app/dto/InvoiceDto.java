@@ -4,7 +4,7 @@ package app.dto;
 import java.time.LocalDateTime;
 
 public class InvoiceDto {
-   private long id;
+    private long id;
     private UserDto userId;
     private PartnerDto partnerId;
     private LocalDateTime dateOfCreation;

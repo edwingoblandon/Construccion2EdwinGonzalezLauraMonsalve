@@ -25,7 +25,7 @@ public class UserDaoImplementation implements UserDao {
     public UserDto findById(UserDto userDto) throws Exception {
         Optional<User> optionalUser = userRepository.findById(userDto.getId());
         
-        if(!optionalUser.isPresent()) throw new Exception("El usuario no se encontro");
+        if(!optionalUser.isPresent()) throw new Exception("El usuario no se encontro :" + userDto.getId());
         
         User user = optionalUser.get();
         

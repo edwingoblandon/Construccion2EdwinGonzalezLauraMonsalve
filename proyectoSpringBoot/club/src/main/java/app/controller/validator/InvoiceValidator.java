@@ -22,4 +22,13 @@ public class InvoiceValidator extends CommonsValidator {
     public int validStatus(String status) throws Exception{
         return super.isValidInteger("La opcion de pago ", status);
     }
+    
+    public int validQuantity(String quantity) throws Exception{
+        return super.isValidInteger("La cantidad ", quantity);
+    }
+    
+    public int validPaymentOption(String option) throws Exception{
+        return super.isValidInteger("La opcion ", option);
+    }
+    
 }
