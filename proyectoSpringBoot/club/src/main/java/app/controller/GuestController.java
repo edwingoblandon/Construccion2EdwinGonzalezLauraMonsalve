@@ -1,13 +1,16 @@
 package app.controller;
 
+import app.controller.request.CreationInvoiceRequest;
+import app.controller.request.UpdateUserRequest;
 import app.controller.validator.DetailInvoiceValidator;
 import app.controller.validator.InvoiceValidator;
 import app.controller.validator.PersonValidator;
 import app.controller.validator.UserValidator;
 import app.dto.DetailInvoiceDto;
+import app.dto.GuestDto;
 import app.dto.InvoiceDto;
 import app.dto.ProductDto;
-import app.service.ClubService;
+import app.dto.UserDto;
 import app.service.interfaces.GuestService;
 import app.service.interfaces.InvoiceService;
 import app.service.interfaces.ProductService;
@@ -17,7 +20,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @Getter
 @Setter
@@ -43,95 +52,67 @@ public class GuestController implements ControllerInterface{
     
     @Override
     public void session() throws Exception {
-        boolean session = true;
-        while (session) {
-            session = menu();
-        }
     }
     
-    private boolean menu(){
+    @PutMapping("/convertToPartner")
+    private ResponseEntity convertGuestToPartner(@RequestHeader("userid") String userId, @RequestBody UpdateUserRequest request ) throws Exception{
         try{
-            System.out.println("bienvenido(a) " + ClubService.user.getUserName());
-            System.out.println(MENU);
-            String option = Utils.getReader().nextLine();
-            return options(option);
-        } catch(
-                Exception e){
-            System.out.println(e.getMessage());
-            return true;
+            long sessionUserId = userValidator.validId(userId);
+            GuestDto guestDto = new GuestDto();
+            guestDto.setUserId(new UserDto());
+            guestDto.getUserId().setId(sessionUserId);
+            
+            String confirmation = request.getConfirmation();
+            
+            if (confirmation.equals("SI")) {
+                service.convertGuestToPartner(guestDto);
+                return new ResponseEntity<>("Proceso realizado con exito!",HttpStatus.OK);
+            } 
+            else{
+                return new ResponseEntity<>("Cancelacion del proceso con exito",HttpStatus.OK);
+            }
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
-    private boolean options(String option) throws Exception{
-        switch(option){
-            case "1":
-                this.makePurchase();
-                return true;
-            case "2":{ 
-                return convertGuestToPartner();
+    @PostMapping("/consume/guest")
+    private ResponseEntity makePurchase(@RequestHeader("userid") String userId, @RequestBody CreationInvoiceRequest request) throws Exception {
+        try{
+            List<ProductDto> products = productService.getAllProducts();
+            int numProducts = 0;
+            for (ProductDto productDto : products) {
+                numProducts += 1;
             }
-            case "3":{
-                System.out.println("Se ha cerrado sesion con exito.");
-                return false;
+
+            Long id = invoiceValidator.validId(request.getId());
+            if (id < 0 || id > numProducts) {
+                throw new Exception("Ingreso una opcion invalida");
             }
-            default: {
-                System.out.println("Opcion incorrecta, intentelo de nuevo");
-                return true;
-            }
+            ProductDto productDto = products.get(id.intValue() - 1);
+
+            System.out.println("Ingrese la cantidad de: " + productDto.getName() + " que desea: ");
+            int quantity = invoiceValidator.validQuantity(request.getQuantity());
+
+            InvoiceDto invoiceDto = new InvoiceDto();
+            invoiceDto.setDateOfCreation(LocalDateTime.now());
+            invoiceDto.setTotalAmount(productDto.getPrice() * quantity);
+            invoiceDto.setStatus("Pending");
+            
+            DetailInvoiceDto detailInvoiceDto = new DetailInvoiceDto();
+            detailInvoiceDto.setDescription(productDto.getDescription());
+            detailInvoiceDto.setAmount(productDto.getPrice());
+            detailInvoiceDto.setItem((int) productDto.getId());
+            detailInvoiceDto.setInvoiceId(invoiceDto);
+            
+            long sessionUserId = userValidator.validId(userId);
+            UserDto userDto = new UserDto();
+            userDto.setId(sessionUserId);
+            
+            this.invoiceService.createInvoice(userDto, invoiceDto, detailInvoiceDto);
+            return new ResponseEntity<>("Compra realizada con Exito", HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
-    }
-    
-    private boolean convertGuestToPartner() throws Exception{
-        System.out.println("Estas seguro de convertirte en socio?. Para continuar escriba SI, para cancelar persiona ENTER.");
-        String opt = Utils.getReader().nextLine().toUpperCase();
-        
-        if (opt.equals("SI")) {
-            service.convertGuestToPartner();
-            System.out.println("Proceso realizado con exito!\nSe ha cerrado la sesion, vuelve a iniciar sesion");
-            return false;
-        }
-        System.out.println("Cancelacion del proceso con exito");
-        return true;
-    }
-    
-    private void makePurchase() throws Exception{
-        List<ProductDto> products = productService.getAllProducts();
-        
-        System.out.println("***Productos disponibles***");
-        System.out.println("-------------------------------");
-        
-        int numProducts = 0;
-        for (ProductDto productDto : products){
-            System.out.println("ID: " + productDto.getId());
-            System.out.println("Nombre: " + productDto.getName());
-            System.out.println("Descripcion: " + productDto.getDescription());
-            System.out.println("Precio: $" + productDto.getPrice());
-            System.out.println("-------------------------------");
-            numProducts += 1;
-        }
-        
-        System.out.println("\nIngrese el ID del producto que desea");
-        Long id = invoiceValidator.validId(Utils.getReader().nextLine());
-        if(id < 0 || id >= numProducts) throw new Exception("Ingrese una opcion valida");
-        ProductDto productDto = products.get(id.intValue() - 1);
-        
-        System.out.println("Ingrese la cantidad de: " + productDto.getName() + " que desea: " );
-        int cant = Integer.parseInt(Utils.getReader().nextLine());
-        
-        
-        
-        InvoiceDto invoiceDto = new InvoiceDto();
-        invoiceDto.setDateOfCreation(LocalDateTime.now());
-        invoiceDto.setStatus("Pending");
-        invoiceDto.setTotalAmount(productDto.getPrice()*cant);
-        
-        DetailInvoiceDto detailInvoiceDto = new DetailInvoiceDto();
-        detailInvoiceDto.setDescription(productDto.getDescription());
-        detailInvoiceDto.setAmount(productDto.getPrice());
-        detailInvoiceDto.setItem((int) productDto.getId());
-        detailInvoiceDto.setInvoiceId(invoiceDto);
-        
-        this.invoiceService.createInvoice(invoiceDto, detailInvoiceDto);
-        System.out.println("Compra realizada con Exito");
     }
 }

@@ -66,7 +66,7 @@ public class PartnerDaoImplementation implements PartnerDao {
     public PartnerDto findByUserId(UserDto userDto) throws Exception {
         Partner partner = partnerRepository.findByUserId(userDto.getId());
     
-        if(partner == null) throw new Exception("No se encontro un socio asociado al invitado");
+        if(partner == null) throw new Exception("No se encontro el socio con ese id de usuario");
         
         return Helper.parse(partner);
        

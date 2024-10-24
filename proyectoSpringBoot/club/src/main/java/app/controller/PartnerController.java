@@ -1,5 +1,11 @@
 package app.controller;
 
+import app.controller.request.CreationInvoiceRequest;
+import app.controller.request.CreationUserRequest;
+import app.controller.request.RechargeRequest;
+import app.controller.request.UpdateUserRequest;
+import app.controller.request.DeleteUserRequest;
+import app.controller.response.InvoiceResponse;
 import app.controller.validator.DetailInvoiceValidator;
 import app.controller.validator.GuestValidator;
 import app.controller.validator.InvoiceValidator;
@@ -9,26 +15,36 @@ import app.controller.validator.UserValidator;
 import app.dto.DetailInvoiceDto;
 import app.dto.GuestDto;
 import app.dto.InvoiceDto;
+import app.dto.PartnerDto;
 import app.dto.PersonDto;
 import app.dto.ProductDto;
 import app.dto.UserDto;
-import app.service.ClubService;
 import app.service.interfaces.InvoiceService;
 import app.service.interfaces.PartnerService;
 import app.service.interfaces.ProductService;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@Controller
+@RestController
 public class PartnerController implements ControllerInterface {
+
     @Autowired
     private PersonValidator personValidator;
     @Autowired
@@ -41,187 +57,154 @@ public class PartnerController implements ControllerInterface {
     private InvoiceValidator invoiceValidator;
     @Autowired
     private DetailInvoiceValidator detailInvoiceValidator;
-    
     @Autowired
     private PartnerService service;
     @Autowired
     private ProductService productService;
     @Autowired
     private InvoiceService invoiceService;
-    
+
     private static final String MENU = "Ingrese la el numero de la opcion\n1. Hacer consumos\n2. Crear invitado \n3. Activar invitado\n4. Desactivar invitado\n5. Recargar fondos\n6. Solicitar VIP\n7. Solicitar Baja\n8. Ver facturas\n9. Cerrar sesion";
-    
-    
+
     @Override
     public void session() throws Exception {
-        boolean session = true;
-        while(session){
-            session = menu();
+
+    }
+
+    @PostMapping("/guest")
+    private ResponseEntity createGuest(@RequestHeader("userid") String userId, @RequestBody CreationUserRequest request) {
+        try {
+            String name = request.getName();
+            personValidator.validName(name); //Void method
+            long document = personValidator.validDocument(request.getDocument()); //Long method
+            long cellphone = personValidator.validCellPhone(request.getCellphone());
+            String userName = request.getUsername();
+            userValidator.validUserName(userName);
+            String password = request.getPassword();
+            userValidator.validPassword(password);
+            long sessionUserId = userValidator.validId(userId);
+
+            PersonDto personDto = new PersonDto();
+            personDto.setName(name);
+            personDto.setDocument(document);
+            personDto.setCellPhone(cellphone);
+
+            UserDto userDto = new UserDto();
+            userDto.setPersonId(personDto);
+            userDto.setUserName(userName);
+            userDto.setPassword(password);
+            userDto.setRole("guest");
+
+            PartnerDto partnerDto = new PartnerDto();
+            partnerDto.setUserId(new UserDto());
+            partnerDto.getUserId().setId(sessionUserId);
+
+            GuestDto guestDto = new GuestDto();
+            guestDto.setUserId(userDto);
+            guestDto.setStatus("Inactive");
+            guestDto.setPartnerId(partnerDto);
+
+            this.service.createGuest(guestDto);
+            return new ResponseEntity<>("se ha creado el invitado exitosamente", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-    
-    private boolean menu(){
+
+    @PostMapping("/consume/partner")
+    private ResponseEntity makePurchase(@RequestHeader("userid") String userId, @RequestBody CreationInvoiceRequest request) throws Exception {
         try{
-            System.out.println("bienvenido(a) " + ClubService.user.getUserName());
-            System.out.println(MENU);
-            String option = Utils.getReader().nextLine();
-            return options(option);
-        } catch(
-                Exception e){
-            System.out.println(e.getMessage());
-            return true;
-        }
-    }
-    
-    private boolean options(String option) throws Exception{
-        switch(option){
-            case "1":
-                this.makePurchase();
-                return true;
-            case "2":
-                this.createGuest();
-                return true;
-            case "3":
-                this.activateGuest();
-                return true;
-            case "4":
-                this.inactivateGuest();
-                return true;
-            case "5":
-                this.increaseFunds();
-                return true;
-            case "6":
-                this.vipPromotionRequest();
-                return true;
-            case "7":
-                return this.unsubscribeRequest();
-            case "8":
-                this.showAllInvoices();
-                return true;
-            case "9":{
-                System.out.println("Se ha cerrado sesion con exito.");
-                return false;
-            } 
-            default: {
-                System.out.println("Opcion incorrecta, intentelo de nuevo");
-                return true;
+            List<ProductDto> products = productService.getAllProducts();
+
+            System.out.println("***Productos disponibles***");
+            int numProducts = 0;
+            for (ProductDto productDto : products) {
+                System.out.println("ID: " + productDto.getId());
+                System.out.println("Nombre: " + productDto.getName());
+                System.out.println("Descripcion: " + productDto.getDescription());
+                System.out.println("Precio: $" + productDto.getPrice());
+                System.out.println("-------------------------------");
+                numProducts += 1;
             }
+
+            Long id = invoiceValidator.validId(request.getId());
+            if (id < 0 || id > numProducts) {
+                throw new Exception("Ingreso una opcion invalida");
+            }
+            ProductDto productDto = products.get(id.intValue() - 1);
+
+            int quantity = invoiceValidator.validQuantity(request.getQuantity());
+
+            int paymentOption = invoiceValidator.validPaymentOption(request.getPaymentOption());
+
+            if(paymentOption != 1 && paymentOption != 2) throw new Exception("Ingreso una opcion de pago invalida");
+
+            InvoiceDto invoiceDto = new InvoiceDto();
+            invoiceDto.setDateOfCreation(LocalDateTime.now());
+            invoiceDto.setTotalAmount(productDto.getPrice() * quantity);
+            String msg = "La factura quedo para pagar despues";
+            if(paymentOption == 1){
+                PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
+                boolean payment = this.validatePayment(partnerDto, invoiceDto);
+                msg = (payment ? "La factura quedo pagada con exito" : "La factura quedo pendiente de pago porque sus fondos no son suficientes");
+                invoiceDto.setStatus(payment ? "Paid" : "Pending");
+            }
+            
+            DetailInvoiceDto detailInvoiceDto = new DetailInvoiceDto();
+            detailInvoiceDto.setDescription(productDto.getDescription());
+            detailInvoiceDto.setAmount(productDto.getPrice());
+            detailInvoiceDto.setItem((int) productDto.getId());
+            detailInvoiceDto.setInvoiceId(invoiceDto);
+            
+            long sessionUserId = userValidator.validId(userId);
+            UserDto userDto = new UserDto();
+            userDto.setId(sessionUserId);
+            
+            this.invoiceService.createInvoice(userDto, invoiceDto, detailInvoiceDto);
+            return new ResponseEntity<>("Compra realizada con Exito" + msg,HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
     
-    private void createGuest() throws Exception{
-        System.out.println("Ingrese el nombre del invitado");
-        String name = Utils.getReader().nextLine(); 
-        personValidator.validName(name); //Void method
-        System.out.println("Ingrese el numero de documento del invitado");
-        long document = personValidator.validDocument(Utils.getReader().nextLine()); //Long method
-        System.out.println("Ingrese el numero de celular del invitado");
-        long celphone = personValidator.validCellPhone(Utils.getReader().nextLine());
-        System.out.println("Ingrese el nombre de usuario del invitado");
-        String userName = Utils.getReader().nextLine();
-        userValidator.validUserName(userName);
-        System.out.println("Ingrese una contraseña para el invitado");
-        String password = Utils.getReader().nextLine();
-        userValidator.validPassword(password);
-       
-        PersonDto personDto = new PersonDto();
-        personDto.setName(name);
-        personDto.setDocument(document);
-        personDto.setCellPhone(celphone);
-        
-        UserDto userDto = new UserDto();
-        userDto.setPersonId(personDto);
-        userDto.setUserName(userName);
-        userDto.setPassword(password);
-        userDto.setRole("guest");
+    @PutMapping("/activate")
+    private ResponseEntity activateGuest(@RequestHeader("userid") String userId, @RequestBody UpdateUserRequest request) throws Exception {
+        try{
+            long guestId = guestValidator.validId(request.getId());
+            
+            PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
+            
+            GuestDto guestDto = new GuestDto();
+            guestDto.setId(guestId);
+            guestDto.setPartnerId(partnerDto);
 
-        GuestDto guestDto = new GuestDto();
-        guestDto.setUserId(userDto);
-        guestDto.setStatus("Inactive");
-        
-        this.service.createGuest(guestDto);
-        System.out.println("Se ha creado el usuario exitosamente");
-    }
-    
-    private void makePurchase() throws Exception{
-        List<ProductDto> products = productService.getAllProducts();
-        
-        System.out.println("***Productos disponibles***");
-        System.out.println("-------------------------------");
-        
-        int numProducts = 0;
-        for (ProductDto productDto : products){
-            System.out.println("ID: " + productDto.getId());
-            System.out.println("Nombre: " + productDto.getName());
-            System.out.println("Descripcion: " + productDto.getDescription());
-            System.out.println("Precio: $" + productDto.getPrice());
-            System.out.println("-------------------------------");
-            numProducts += 1;
+            service.activateGuest(guestDto);
+
+            return new ResponseEntity<>("El invitado ha sido activado exitosamente", HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        
-        System.out.println("\nIngrese el ID del producto que desea");
-        Long id = invoiceValidator.validId(Utils.getReader().nextLine());
-        if(id < 0 || id > numProducts) throw new Exception("Ingreso una opcion invalida");
-        ProductDto productDto = products.get(id.intValue() - 1);
-        
-        System.out.println("Ingrese la cantidad de: " + productDto.getName() + " que desea: " );
-        int cant = Integer.parseInt(Utils.getReader().nextLine());
-       
-        int opt;
-        do {
-            System.out.println("Desea pagar ahora o después? (Escriba 1 para pagar ahora, 2 para pagar despues):");
-            opt = invoiceValidator.validStatus(Utils.getReader().nextLine());
-        } while (opt != 1 && opt != 2);
-        
-        
-        
-        InvoiceDto invoiceDto = new InvoiceDto();
-        invoiceDto.setDateOfCreation(LocalDateTime.now());
-        int status = opt == 1 ? 1 : 2;
-        invoiceDto.setStatus(status == 1 ? "Paid" : "Pending");
-        invoiceDto.setTotalAmount(productDto.getPrice()*cant);
-        
-        DetailInvoiceDto detailInvoiceDto = new DetailInvoiceDto();
-        detailInvoiceDto.setDescription(productDto.getDescription());
-        detailInvoiceDto.setAmount(productDto.getPrice());
-        detailInvoiceDto.setItem((int) productDto.getId());
-        detailInvoiceDto.setInvoiceId(invoiceDto);
-        
-        this.invoiceService.createInvoice(invoiceDto, detailInvoiceDto);
-        System.out.println("Compra realizada con Exito");
     }
     
-    
-    private void activateGuest() throws Exception{
-        List<GuestDto> inactiveGuests = service.getGuestsForPartnerSession("Inactive");
-        
-        showGuestList(inactiveGuests, "Invitados inactivos del socio en sesion:");
-        
-        System.out.println("Ingrese el ID del invitado que desea activar");
-        long guestId = Long.parseLong(Utils.getReader().nextLine());
-        GuestDto guestDto = new GuestDto();
-        guestDto.setId(guestId);
-        service.activateGuest(guestDto);
+    @PutMapping("/inactivate")
+    private ResponseEntity inactivateGuest(@RequestHeader("userid") String userId, @RequestBody UpdateUserRequest request) throws Exception {
+        try{
+            long guestId = guestValidator.validId(request.getId());
+            
+            PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
+                    
+            GuestDto guestDto = new GuestDto();
+            guestDto.setId(guestId);
+            guestDto.setPartnerId(partnerDto);
 
-        System.out.println("El invitado ha sido activado exitosamente.");
+            service.inactivateGuest(guestDto);
+            
+            return new ResponseEntity<>("El invitado ha sido desactivado exitosamente.", HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
-    
-    private void inactivateGuest() throws Exception {
-        List<GuestDto> activeGuests = service.getGuestsForPartnerSession("Active");
-        
-        showGuestList(activeGuests, "Invitados activos del socio en sesion:");
-        
-        System.out.println("Ingrese el ID del invitado que desea desactivar");
-        long guestId = guestValidator.validId(Utils.getReader().nextLine());
-        
-        GuestDto guestDto = new GuestDto();
-        guestDto.setId(guestId);
 
-        service.inactivateGuest(guestDto);
-
-        System.out.println("El invitado ha sido desactivado exitosamente.");
-    }
-    
     private void showGuestList(List<GuestDto> guests, String message) {
         System.out.println("\n" + message);
         for (GuestDto guest : guests) {
@@ -230,55 +213,96 @@ public class PartnerController implements ControllerInterface {
             System.out.println("-------------------------------");
         }
     }
-    
-    private void showAllInvoices() throws Exception {
-        List <DetailInvoiceDto> invoices = this.service.getAllDetailInvoiceByPartner();
-        System.out.println("\n***Facturas***");
-        for (DetailInvoiceDto invoice : invoices) {
-            System.out.println("ID: " + invoice.getInvoiceId().getId());
+
+    @GetMapping("/invoices/partner")
+    private ResponseEntity<Object> showAllInvoices(@RequestHeader("userid") String userId) throws Exception {
+        try{
+            PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
             
-            String status = invoice.getInvoiceId().getStatus().equalsIgnoreCase("Pending") ? "Pendiente" : "Pagada";
-            System.out.println("Estado: " + status);
+            List<DetailInvoiceDto> invoices = this.service.getAllDetailInvoiceByPartner(partnerDto);
+            List<InvoiceResponse> responseList = new ArrayList<>();
             
-            System.out.println("Persona que realizo el consumo: " + invoice.getInvoiceId().getUserId().getPersonId().getName());
-            String type = invoice.getInvoiceId().getUserId().getRole().equalsIgnoreCase("Partner") ? "Socio" : "Invitado";
-            System.out.println("Tipo de persona que realizo el consumo: " + type);
-            System.out.println("Fecha de la factura: " + invoice.getInvoiceId().getDateOfCreation());
-            System.out.println("Id del item: " + invoice.getItem());
-            System.out.println("Descripcion del producto: " + invoice.getDescription());
-            System.out.println("Precio por unidad: " + invoice.getAmount());
-            System.out.println("Unidades compradas: " + invoice.getInvoiceId().getTotalAmount()/invoice.getAmount());
-            System.out.println("Monto total: " + invoice.getInvoiceId().getTotalAmount());
-            System.out.println("-------------------------------");
+            for (DetailInvoiceDto invoice : invoices){
+                InvoiceResponse invoiceResponse = new InvoiceResponse();
+                
+                invoiceResponse.setId(invoice.getId());
+                invoiceResponse.setStatus(invoice.getInvoiceId().getStatus().equalsIgnoreCase("Pending") ? "Pendiente" : "Pagada");
+                invoiceResponse.setUserName(invoice.getInvoiceId().getUserId().getUserName());
+                invoiceResponse.setUserType(invoice.getInvoiceId().getUserId().getRole().equalsIgnoreCase("Partner") ? "Socio" : "Invitado");
+                invoiceResponse.setDateOfCreation(invoice.getInvoiceId().getDateOfCreation());
+                invoiceResponse.setItemId(invoice.getItem());
+                invoiceResponse.setDescription(invoice.getDescription());
+                invoiceResponse.setUnitPrice(invoice.getAmount());
+                invoiceResponse.setQuantity((int) (invoice.getInvoiceId().getTotalAmount() / invoice.getAmount()));
+                invoiceResponse.setTotalAmount(invoice.getInvoiceId().getTotalAmount());
+                
+                responseList.add(invoiceResponse);
+            }
+            
+            return new ResponseEntity<>(responseList,HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/unsuscriberequest")
+    private ResponseEntity unsubscribeRequest(@RequestHeader("userid") String userId, @RequestBody DeleteUserRequest request) throws Exception {
+        try{
+            PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
+            
+            String confirmation = request.getConfirmation();
+            
+            if (confirmation.equals("SI")) {
+                service.unsubscribeRequest(partnerDto);
+                return new ResponseEntity<>("Se te dio de baja con Exito",HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Se cancelo tu solicitud de desuscripcion",HttpStatus.OK);
+            }
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/viprequest")
+    private ResponseEntity vipPromotionRequest(@RequestHeader("userid") String userId, @RequestBody UpdateUserRequest request) throws Exception {
+        try{
+            PartnerDto partnerDto = getPartnerDtoFromRequest(userId);
+            String confirmation = request.getConfirmation();
+            
+            if (confirmation.equals("SI")) {
+                service.vipPromotionRequest(partnerDto);
+                return new ResponseEntity<>("Se ha enviado su solicitud para promoverlo a VIP",HttpStatus.OK);
+            }
+            return new ResponseEntity<>("Se cancelo tu solicitud", HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/recharge")
+    private ResponseEntity increaseFunds(@RequestHeader("id") String id,@RequestBody RechargeRequest request) throws Exception {
+        try{
+            PartnerDto partnerDto = new PartnerDto();
+            partnerDto.setId(partnerValidator.validId(id));
+            
+            double amount = partnerValidator.validAmount(request.getAmount());
+            service.increaseFunds(amount,partnerDto);
+            return new ResponseEntity<>("Recarga realizada con exito",HttpStatus.OK);
+        } catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     
-    private boolean unsubscribeRequest() throws Exception{
-        System.out.println("Estas seguro de eliminar tu usuario?. Para continuar escriba SI, para cancelar persiona ENTER.");
-        String opt = Utils.getReader().nextLine().toUpperCase();
-        
-        if (opt.equals("SI")) {
-            service.unsubscribeRequest();
-            System.out.println("Se te ha dado de baja!");
-            return false;
-        }
-        return true;
+    private PartnerDto getPartnerDtoFromRequest(String userId) throws Exception {
+        long sessionUserId = userValidator.validId(userId);
+        PartnerDto partnerDto = new PartnerDto();
+        partnerDto.setUserId(new UserDto());
+        partnerDto.getUserId().setId(sessionUserId);
+        return partnerDto;
     }
     
-    private void vipPromotionRequest() throws Exception{
-        System.out.println("Estas seguro de realizar la solicitud a VIP?. Para continuar escriba SI, para cancelar persiona ENTER.");
-        String opt = Utils.getReader().nextLine().toUpperCase();
-        
-        if (opt.equalsIgnoreCase("SI")){
-            service.vipPromotionRequest();
-            System.out.println("Se ha enviado su solicitud para promoverlo a VIP");
-        } 
-    }
-    
-    private void increaseFunds() throws Exception{
-        System.out.println("Ingrese la cantidad de fondos que desea recargar");
-        double amount = partnerValidator.validAmount(Utils.getReader().nextLine());
-        service.increaseFunds(amount);
-        
+    private boolean validatePayment(PartnerDto partnerDto, InvoiceDto invoiceDto) throws Exception{
+        return this.service.payInvoice(partnerDto, invoiceDto);
     }
 }

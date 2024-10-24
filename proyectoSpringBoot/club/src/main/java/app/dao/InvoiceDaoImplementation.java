@@ -8,6 +8,7 @@ import app.dto.UserDto;
 import app.dto.PartnerDto;
 import app.helpers.Helper;
 import app.model.Invoice;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,7 +64,6 @@ public class InvoiceDaoImplementation implements InvoiceDao{
     @Override
     public List<InvoiceDto> findAllByPartnerId(PartnerDto partnerDto) throws Exception {
         List<Invoice> invoices = invoiceRepository.findByPartnerId(partnerDto.getId());
-        
         return invoices.stream().map(Helper::parse).collect(Collectors.toList());
     }
     

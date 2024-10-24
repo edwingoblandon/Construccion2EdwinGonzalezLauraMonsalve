@@ -21,7 +21,7 @@ public class PersonValidator extends CommonsValidator {
     }
     
     public long validCellPhone(String cellPhone) throws Exception{
-        if (cellPhone.length() != 10) throw new Exception("El numero de celular de la persona debe ser de 10 digitos");
+        if (cellPhone==null || cellPhone.length() != 10) throw new Exception("El numero de celular de la persona debe ser de 10 digitos");
         return super.isValidLong("El telefono de la persona", cellPhone);
     }
 }

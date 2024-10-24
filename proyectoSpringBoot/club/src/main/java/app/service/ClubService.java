@@ -44,7 +44,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     @Autowired
     private ProductDao productDao;
     
-    public static UserDto user;
+    public UserDto user;
  
     
     @Override
@@ -53,7 +53,13 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public void createInvoice(InvoiceDto invoiceDto, DetailInvoiceDto detailInvoiceDto) throws Exception {
+    public void createInvoice(UserDto userDto,InvoiceDto invoiceDto, DetailInvoiceDto detailInvoiceDto) throws Exception {
+        user = userDao.findById(userDto);
+                
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +userDto.getId());
+        }
+        
         PartnerDto partnerDto = null;
         try {
             partnerDto = getSessionPartner();
@@ -74,21 +80,42 @@ public class ClubService implements AdminService, LoginService , PartnerService,
 
     @Override
     public void createGuest(GuestDto guestDto) throws Exception{
+        user = userDao.findById(guestDto.getPartnerId().getUserId());
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +guestDto.getUserId().getId());
+        }
         this.createGuestInDb(guestDto);
     }
     
     @Override
     public void activateGuest(GuestDto guestDto) throws Exception{
+        user = userDao.findById(guestDto.getPartnerId().getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +guestDto.getUserId().getId());
+        }
+        
         this.activateGuestInDb(guestDto);
     }
     
     @Override
-    public void convertGuestToPartner() throws Exception{
-        this.convertGuestToPartnerInDb();
+    public void convertGuestToPartner(GuestDto guestDto) throws Exception{
+        user = userDao.findById(guestDto.getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +guestDto.getUserId().getId());
+        }
+        this.convertGuestToPartnerInDb(guestDto);
     }
     
     @Override
     public void inactivateGuest(GuestDto guestDto) throws Exception{
+        user = userDao.findById(guestDto.getPartnerId().getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +guestDto.getUserId().getId());
+        }
+        
         this.inactivateGuestInDb(guestDto);
     }
     
@@ -103,12 +130,22 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public void unsubscribeRequest() throws Exception{
+    public void unsubscribeRequest(PartnerDto partnerDto) throws Exception{
+        user = userDao.findById(partnerDto.getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " + partnerDto.getUserId().getId());
+        }
         this.unsubscribe();
     }
     
     @Override
-    public void vipPromotionRequest() throws Exception{
+    public void vipPromotionRequest(PartnerDto partnerDto) throws Exception{
+        user = userDao.findById(partnerDto.getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +partnerDto.getUserId().getId());
+        }
         this.promotionVip();
     }
     
@@ -118,9 +155,27 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public void increaseFunds(double amount) throws Exception{
-        this.increaseFundsInDb(amount);
+    public void increaseFunds(double amount, PartnerDto partnerDto) throws Exception{
+        partnerDto = partnerDao.findById(partnerDto);
+        user = userDao.findById(partnerDto.getUserId());
+        if (partnerDto == null){
+            throw new Exception("error encontrando socio: " +partnerDto.getId());
+        }
+        this.increaseFundsInDb(amount,partnerDto);
     }
+    
+    @Override
+    public boolean payInvoice(PartnerDto partnerDto, InvoiceDto invoiceDto) throws Exception {
+        user = userDao.findById(partnerDto.getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " +partnerDto.getUserId().getId());
+        }
+        
+        partnerDto = getSessionPartner();
+        return this.payInvoiceInDb(partnerDto, invoiceDto);
+    }
+    
     
     @Override
     public List<ProductDto> getAllProducts() throws Exception{
@@ -130,11 +185,6 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     @Override
     public List<DetailInvoiceDto> getAllDetailInvoices() throws Exception{
         return detailInvoiceDao.findAllDetailInvoces();
-    }
-    
-    @Override
-    public List<InvoiceDto> getAllInvoicesByPartner() throws Exception{
-        return invoiceDao.findAllByPartnerId(getSessionPartner());
     }
     
     @Override
@@ -148,7 +198,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     @Override
-    public List<DetailInvoiceDto> getAllDetailInvoiceByPartner() throws Exception{
+    public List<DetailInvoiceDto> getAllDetailInvoiceByPartner(PartnerDto partnerDto) throws Exception{
+        user = userDao.findById(partnerDto.getUserId());
+        
+        if (user == null){
+            throw new Exception("error encontrando usuario : " + partnerDto.getUserId().getId());
+        }
         return detailInvoiceDao.findAllByPartnerId(getSessionPartner());
     }
     
@@ -254,10 +309,12 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private void activateGuestInDb(GuestDto guestDto) throws Exception{
         this.isValidGuestByPartner(guestDto, getSessionPartner());
         guestDto = guestDao.findById(guestDto);
+        
         if ("regular".equalsIgnoreCase(guestDto.getPartnerId().getType())){
             int activeGuestCount = guestDao.countActiveGuestsByPartnerId(guestDto);
             if (activeGuestCount >= 3) throw new Exception("ERROR! Ya haz alcanzado el maximo de invitados activos");
         }
+        
         guestDto.setStatus("Active");
         guestDao.updateGuest(guestDto);
     }
@@ -269,9 +326,8 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         guestDao.updateGuest(guestDto);
     }
     
-    private void convertGuestToPartnerInDb() throws Exception{
-        GuestDto guestDto = this.getSessionGuest();
-        guestDto = guestDao.findById(guestDto);
+    private void convertGuestToPartnerInDb(GuestDto guestDto) throws Exception{
+        guestDto = guestDao.findByUserId(user);
         guestDto.setStatus("CONVERTED_TO_PARTNER");
         
    
@@ -300,9 +356,8 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     }
     
     private void unsubscribe() throws Exception{
-        PartnerDto partnerDto = this.getSessionPartner();
+        PartnerDto partnerDto = partnerDao.findByUserId(user);
         PersonDto personDto = personDao.findByDocument(partnerDto.getUserId().getPersonId());
-        
         List<InvoiceDto> invoices = invoiceDao.findAllByPartnerId(partnerDto);
         if(!invoices.isEmpty()){
             for(InvoiceDto invoice: invoices){
@@ -315,7 +370,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
     private void promotionVip() throws Exception{
         PartnerDto partnerDto = this.getSessionPartner();
         
-        if(partnerDto.getType().equalsIgnoreCase("in progress")) throw new Exception("ERROR! Tu solicitud ya se encuentra en proces");
+        if(partnerDto.getType().equalsIgnoreCase("in progress")) throw new Exception("ERROR! Tu solicitud ya se encuentra en proceso");
         
         partnerDto.setType("in progress");
         this.partnerDao.updatePartner(partnerDto);
@@ -355,6 +410,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         }
 
         else if(filter.equalsIgnoreCase("vip")){
+            if(vips.isEmpty()) throw new Exception("No se encontraron socios VIP");
             return vips;
         }
         else{
@@ -394,8 +450,7 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         return true;
     }
     
-    private void increaseFundsInDb(double amount) throws Exception{
-        PartnerDto partnerDto = getSessionPartner();
+    private void increaseFundsInDb(double amount, PartnerDto partnerDto) throws Exception{
         double currentAmount = partnerDto.getAmount();
         if( (currentAmount + amount <= 1000000) && 
             (partnerDto.getType().equalsIgnoreCase("Regular") || partnerDto.getType().equalsIgnoreCase("in progress")) &&
@@ -450,6 +505,22 @@ public class ClubService implements AdminService, LoginService , PartnerService,
         }
         
         partnerDto.setAmount(availableFunds);
+    }
+    
+    private boolean payInvoiceInDb(PartnerDto partnerDto, InvoiceDto invoiceDto) throws Exception{
+        double availableFunds = partnerDto.getAmount();
+        System.out.println("EL MONTO DISPONIBLE DEL PARTNER ID " + partnerDto.getId() +" Es de: $" + availableFunds);
+        double amountInvoice = invoiceDto.getTotalAmount();
+        System.out.println("La factura cuesta: " + amountInvoice);
+        if (availableFunds >= amountInvoice) {
+            availableFunds -= amountInvoice;
+            System.out.println(" Valor total pagado: $" + invoiceDto.getTotalAmount());
+            partnerDto.setAmount(availableFunds);
+            partnerDao.updatePartner(partnerDto);
+            return true;
+        } else {
+            return false;
+        }
     }
     
     private int getNumPaidInvoicesInDb(PartnerDto partnerDto) throws Exception{

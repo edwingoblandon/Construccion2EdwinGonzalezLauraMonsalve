@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 public class PartnerValidator extends CommonsValidator{
     
     public double validAmount(String amount) throws Exception{
+        if(Double.valueOf(amount) <= 0) throw new Exception("El valor a recargar debe ser mayor a $0");
         return super.isValidDouble("El monto del socio", amount);
+    }
+    
+    public long validId(String id) throws Exception{
+        return super.isValidLong("El id del socio", id);
     }
 }
